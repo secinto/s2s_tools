@@ -14,12 +14,21 @@ function checkFinished() {
 	fi
 	
 	local finished=$defaultPath/recon_finished
+	local started=$defaultPath/recon_started
 	
 	if [ -s "$finished" ]; then
-		zip -q -r $defaultPath/$project.zip $defaultPath
+		zip -q -r $defaultPath/$project.zip $defaultPath &> /dev/null
+		if [ -f "$started" ]; then
+			cat $started > $defaultPath/timing.txt
+			rm $started &> /dev/null
+		fi
+		cat $finished >> $defaultPath/timing.txt
+		rm $finished &> /dev/null
 		echo "$project FINISHED"
-	else
+	elif [ -s "$recon_started" ]; then
 		echo "RUNNING"
+	else
+		echo "NOT STARTED"
 	fi
 	
 }
@@ -34,7 +43,5 @@ function performRecon() {
 	fi
 	
 	rm $defaultPath/s2s.log
-	recon $project &> $defaultPath/s2s.log & disown
-	
-	echo "STARTED"
+	recon $project &> $defaultPath/s2s.log & nohup
 }

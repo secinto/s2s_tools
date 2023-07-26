@@ -900,7 +900,12 @@ recon() {
 		return
 	fi
 	
-	rm $defaultPath/recon_finished
+	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
+	echo "STARTED $now" > $default/recon_started
+
+	if [ -f "$defaultPath/recon_finished" ]; then
+		rm $defaultPath/recon_finished
+	fi
 	
 	local multi_domains=$defaultPath/multi_domains.txt
 	
