@@ -1,0 +1,14 @@
+export GOPATH=$HOME/go
+export PATH="$PATH:/usr/local/go/bin;$HOME/.local/bin:$HOME/bin:$HOME/go/bin"
+
+if [ -d "/opt/tools/s2s_tools" ] ; then
+    source /opt/tools/s2s_tools/s2s_main.bash
+fi
+
+alias ls='ls -la --color=auto'
+
+#export S2S_IPINFO_TOKEN=
+#export S2S_ELK_SERVER=
+#export S2S_ELK_USER=
+#export S2S_ELK_PASS=
+#export ZEROTIER_NETWORK_ID=
