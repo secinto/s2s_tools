@@ -7,7 +7,7 @@ fi
 
 alias ls='ls -la --color=auto'
 
-if [ -d "$HOME/.s2s_env" ] ; then
+if [ -f "$HOME/.s2s_env" ] ; then
     source $HOME/.s2s_env
 #
 # The s2s_env bash script must export the following 
