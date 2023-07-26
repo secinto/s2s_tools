@@ -142,7 +142,7 @@ function getRemoteReconResults() {
 #============================================================================
 # Create the configuration file for the elasticPusher tools with information
 # stored in environment variables S2S_ELK_SERVER, S2S_ELK_USER, and 
-# S2S_ELK_PASS
+# S2S_ELK_PASS. 
 #============================================================================
 function createElasticEnvironment() {
 
@@ -155,4 +155,9 @@ function createElasticEnvironment() {
 	else
 		echo "Not all required environment variables exist. S2S_ELK_SERVER, S2S_ELK_USER, S2S_ELK_PASS"
 	fi
+	
+}
+
+function joinZerotierNetwork() {
+	zerotier-cli join $ZEROTIER_NETWORK_ID
 }

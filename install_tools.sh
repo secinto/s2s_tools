@@ -92,8 +92,6 @@ function installBase() {
 	installToolGit s2s_tools https://github.com/secinto/s2s_tools.git
 	
 	curl -s https://install.zerotier.com | bash
-	
-	zerotier-cli join $ZEROTIER_NETWORK_ID
 
 }
 

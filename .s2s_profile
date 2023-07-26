@@ -7,8 +7,16 @@ fi
 
 alias ls='ls -la --color=auto'
 
-#export S2S_IPINFO_TOKEN=
-#export S2S_ELK_SERVER=
-#export S2S_ELK_USER=
-#export S2S_ELK_PASS=
-#export ZEROTIER_NETWORK_ID=
+if [ -d "$HOME/.s2s_env" ] ; then
+    source $HOME/.s2s_env
+#
+# The s2s_env bash script must export the following 
+# variables in order for the tool chain to function
+#
+# export S2S_IPINFO_TOKEN=    ... ipinfo.io API token
+# export S2S_ELK_SERVER=      ... http://ip:9200 of the ELK server
+# export S2S_ELK_USER=		  ... Username of the ELK user to push data
+# export S2S_ELK_PASS=        ... Password of the ELK user to push data
+# export ZEROTIER_NETWORK_ID= ... Optional. If the ELK server (or other servers are available via an zerotier network). 
+	
+fi
