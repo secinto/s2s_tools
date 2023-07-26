@@ -104,7 +104,7 @@ function doRemoteRecon() {
 		fi
 
 		echo "Starting recon on remote machine $SSH_S2S_SERVER"
-		local ssh_command="'performRecon $project'"
+		local ssh_command="performRecon $project"
 		echo "SSH command $ssh_command"
 		local return="$(ssh $ssh_base -t $ssh_command)"
 

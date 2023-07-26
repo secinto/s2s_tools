@@ -33,7 +33,7 @@ function performRecon() {
 		return
 	fi
 	
-	recon $project & disown &> $defaultPath/s2s.log
+	recon $project &> $defaultPath/s2s.log & disown
 	
 	echo "STARTED"
 }
