@@ -47,6 +47,12 @@ function performRecon() {
 		
 		recon $project &> $defaultPath/s2s.log & disown
 	else
-		echo "Recon already started and running."
+		local finished=$defaultPath/recon_finished
+		
+		if [ ! -f "$finished" ]; then	
+			echo "Recon started and running."
+		else
+			local finishedTime="$(cat $finished)"
+			echo "Previous recon finished at $finishedTime. Get results before starting new recon!"
 	fi
 }
