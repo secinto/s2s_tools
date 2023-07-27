@@ -5,8 +5,10 @@
 #----------------------------------------------------------
 function updateProfile() {
 	cd $HOME
-	cp /opt/tools/s2s_tools/.profile $HOME/.profile
-	cp /opt/tools/s2s_tools/.bashrc $HOME/.bashrc
+	cp $s2s_tools/.profile .profile
+	cp $s2s_tools/.bashrc .bashrc
+	cp $s2s_tools/executeRecon.sh executeRecon.sh
+	chmod +x executeRecon.sh
 	
 	source .profile
 }
@@ -114,13 +116,16 @@ function installGOTools() {
 	go install -v github.com/secinto/nmapParser/cmd/nmapParser@latest
 	go install -v github.com/d3mondev/puredns/v2@latest
 	go install -v github.com/rverton/webanalyze/cmd/webanalyze@latest
+	
+	webanalyze -update
+	
 	mkdir -p ~/.config/nmapParser
 	mkdir -p ~/.config/simpleFinder
 	mkdir -p ~/.config/duplicateRemover
 	cp $s2s_tools/resources/settings.yaml ~/.config/duplicateRemover/.
 	cp $s2s_tools/resources/settings.yaml ~/.config/simpleFinder/.
 	cp $s2s_tools/resources/settings.yaml ~/.config/nmapParser/.
-
+	
 }
 
 function installAdditionalNonGOTools() {
@@ -159,7 +164,7 @@ function installWordlists() {
 }
 
 export tools=/opt/tools
-export s2s_tools=/opt/tools/s2s_tools
+export s2s_tools=$tools/s2s_tools
 
 # First install base requirements - must be performed
 installBase

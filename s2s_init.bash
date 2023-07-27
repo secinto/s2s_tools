@@ -104,7 +104,11 @@ function doRemoteRecon() {
 		fi
 
 		echo "Starting recon on remote machine $SSH_S2S_SERVER"
-		local ssh_command="performRecon $project"
+		if [ "$SSH_S2S_USER" == "root" ]; then
+			local ssh_command="nohup /$SSH_S2S_USER/executeRecon.sh $project"
+		else 
+			local ssh_command="nohup /home/$SSH_S2S_USER/executeRecon.sh $project"
+		fi
 		echo "SSH command $ssh_command"
 		local return="$(ssh $ssh_base -t $ssh_command)"
 

@@ -41,8 +41,16 @@ function performRecon() {
 		echo "Exiting"
 		return
 	fi
-	
-	rm $defaultPath/s2s.log
-	recon $project &> $defaultPath/s2s.log
 
+	local started=$defaultPath/recon_started
+	
+	if [ ! -s "$started" ]; then
+		if [ -f "$defaultPath/s2s.log" ]; then
+			rm $defaultPath/s2s.log
+		fi
+		
+		recon $project &> $defaultPath/s2s.log & disown
+	else
+		echo "Recon already started and running."
+	fi
 }
