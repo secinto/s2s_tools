@@ -140,6 +140,11 @@ function getRemoteReconResults() {
 			#rm -rf $defaultPath
 			local return="$(scp $ssh_base:/opt/s2s/$project/$project.zip /tmp/$project.zip)"
 			unzip -o /tmp/$project.zip -d /
+
+			local ssh_command="rm /opt/s2s/$project/recon_started"
+			echo "SSH command $ssh_command"
+			local return="$(ssh $ssh_base -t $ssh_command)"
+
 		fi
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 

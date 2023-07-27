@@ -40,7 +40,7 @@ function performRecon() {
 
 	local started=$defaultPath/recon_started
 	
-	if [ ! -s "$started" ]; then
+	if [ ! -f "$started" ]; then
 		if [ -f "$defaultPath/s2s.log" ]; then
 			rm $defaultPath/s2s.log
 		fi
