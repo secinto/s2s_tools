@@ -43,5 +43,6 @@ function performRecon() {
 	fi
 	
 	rm $defaultPath/s2s.log
-	recon $project &> $defaultPath/s2s.log & nohup
+	recon $project &> $defaultPath/s2s.log
+
 }
