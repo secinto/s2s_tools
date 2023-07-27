@@ -17,13 +17,9 @@ function checkFinished() {
 	local started=$defaultPath/recon_started
 	
 	if [ -s "$finished" ]; then
-		zip -q -r $defaultPath/$project.zip $defaultPath &> /dev/null
-		if [ -f "$started" ]; then
-			cat $started > $defaultPath/timing.txt
-			rm $started &> /dev/null
+		if [ ! -f "$defaultPath/$project.zip" ]; then
+			zip -q -r $defaultPath/$project.zip $defaultPath &> /dev/null
 		fi
-		cat $finished >> $defaultPath/timing.txt
-		rm $finished &> /dev/null
 		echo "$project FINISHED"
 	elif [ -s "$recon_started" ]; then
 		echo "RUNNING"

@@ -95,12 +95,10 @@ function doRemoteRecon() {
 			echo "Creating s2s directory for $project on remote machine $SSH_S2S_SERVER"
 			local ssh_command="mkdir -p /opt/s2s/$project"
 			local return="$(ssh $ssh_base -t $ssh_command)"
-			#scp $defaultPath/multi_domains.txt $SSH_S2s_USER:$SSH_S2S_PAS@$SSH_SERVER:/opt/s2s/$project/multi_domains.txt 
 			echo "Copying multi_domains file to remote machine $SSH_S2S_SERVER"
 			local return="$(scp $defaultPath/multi_domains.txt $ssh_base:/opt/s2s/$project/multi_domains.txt)"
 		else
 			echo "Single domain project"
-			
 		fi
 
 		echo "Starting recon on remote machine $SSH_S2S_SERVER"
@@ -111,7 +109,7 @@ function doRemoteRecon() {
 		fi
 		echo "SSH command $ssh_command"
 		local return="$(ssh $ssh_base -t $ssh_command)"
-
+		echo $return
 	fi
 }
 
@@ -125,6 +123,10 @@ function getRemoteReconResults() {
 	
 	if [[ -n "${SSH_S2S_USER+set}" && -n "${SSH_S2S_SERVER+set}" ]]; then
 		
+		echo "==========================================================================="
+		echo " Getting remote results from $SSH_S2S_SERVER for project $project"
+		echo "==========================================================================="
+
 		local ssh_base="$SSH_S2S_USER@$SSH_S2S_SERVER"
 		echo "SSH base command: $ssh_base"
 			
@@ -135,10 +137,16 @@ function getRemoteReconResults() {
 		echo "$return"
 		if [[ "$return" == *"$project FINISHED"* ]]; then
 			echo "Getting $project.zip file from remote host $SSH_S2S_SERVER"
-			rm -rf $defaultPath
+			#rm -rf $defaultPath
 			local return="$(scp $ssh_base:/opt/s2s/$project/$project.zip /tmp/$project.zip)"
-			unzip /tmp/$project.zip -d /
+			unzip -o /tmp/$project.zip -d /
 		fi
+		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
+
+		echo "==========================================================================="
+		echo " Worflow ${FUNCNAME[0]} finished"
+		echo " Current time: $now"
+		echo "==========================================================================="
 	fi
 }
 
