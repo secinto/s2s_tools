@@ -901,7 +901,7 @@ recon() {
 	fi
 	
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
-	echo "STARTED $now" > $default/recon_started
+	echo "STARTED $now" > $defaultPath/recon_started
 
 	if [ -f "$defaultPath/recon_finished" ]; then
 		rm $defaultPath/recon_finished
