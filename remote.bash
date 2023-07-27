@@ -54,5 +54,6 @@ function performRecon() {
 		else
 			local finishedTime="$(cat $finished)"
 			echo "Previous recon finished at $finishedTime. Get results before starting new recon!"
+		fi
 	fi
 }
