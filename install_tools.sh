@@ -83,8 +83,8 @@ function installBase() {
 	   echo "GO command not found installing it from source"
 	   local goarchive=go1.20.6.linux-amd64.tar.gz
 	   wget https://go.dev/dl/$goarchive
-	   rm -rf /usr/local/go
-	   tar -C /usr/local -xzf $goarchive
+	   sudo rm -rf /usr/local/go
+	   sudo tar -C /usr/local -xzf $goarchive
 	   export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
 	   rm $goarchive
 	else
@@ -93,7 +93,7 @@ function installBase() {
 	
 	installToolGit s2s_tools https://github.com/secinto/s2s_tools.git
 	
-	curl -s https://install.zerotier.com | bash
+	curl -s https://install.zerotier.com | sudo bash
 
 }
 
@@ -131,7 +131,7 @@ function installGOTools() {
 function installAdditionalNonGOTools() {
 
 	# Install feroxbuster
-	curl -sL https://raw.githubusercontent.com/epi052/feroxbuster/main/install-nix.sh | bash -s /usr/local/bin
+	curl -sL https://raw.githubusercontent.com/epi052/feroxbuster/main/install-nix.sh | sudo bash -s /usr/local/bin
 
 	# Install additional tools
 	installToolGit ffuf-scripts https://github.com/ffuf/ffuf-scripts.git
