@@ -134,7 +134,7 @@ function generateHostMappings() {
 	echo "Removing duplicates for project $project"
 	echo "============================================================================"
 	
-	nmapParser -p $project -hd
+	nmapParser -p $project -a -hd
 }
 
 #============================================================================

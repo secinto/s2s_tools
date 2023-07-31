@@ -23,6 +23,7 @@ function installToolGit() {
 		git pull
 	else
 		cd "$tools"
+		sudo mkdir -p $repo
 		git clone $url
 	fi
 }
