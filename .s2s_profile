@@ -1,5 +1,5 @@
 export GOPATH=$HOME/go
-export PATH="$PATH:/usr/local/go/bin;$HOME/bin:$HOME/go/bin"
+PATH="$PATH:/usr/local/go/bin:$HOME/bin:$HOME/go/bin"
 
 if [ -f "$HOME/.s2s_env" ] ; then
     source $HOME/.s2s_env
