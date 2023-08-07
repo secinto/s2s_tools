@@ -697,6 +697,11 @@ dns_enum() {
 	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
+	else
+		local dnsEntries="$(cat $inputTXT | wc -l)"
+		if [ $dnsEntries -lt 5 ]; then
+			local run=false
+		fi
 	fi
 	
 	if $run; then
@@ -764,6 +769,11 @@ dns_fuzz() {
 	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
+	else
+		local dnsEntries="$(cat $inputTXT | wc -l)"
+		if [ $dnsEntries -lt 5 ]; then
+			local run=false
+		fi
 	fi
 
 	
