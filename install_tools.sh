@@ -48,11 +48,6 @@ function installRepoGit() {
 
 function installBase() {
 
-	echo "2a01:4f8:c010:d56::2 github.com" >> /etc/hosts
-	echo "2a01:4f8:c010:d56::3 api.github.com" >> /etc/hosts
-	echo "2a01:4f8:c010:d56::4 codeload.github.com" >> /etc/hosts
-	echo "2a01:4f8:c010:d56::5 objects.githubusercontent.com" >> /etc/hosts
-	
 	sudo mkdir -p /opt/tools/resources
 	#sudo mkdir -p /opt/repos
 
