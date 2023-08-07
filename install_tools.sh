@@ -139,9 +139,9 @@ function installAdditionalNonGOTools() {
 	cd "$tools/massdns"
 	make
 	sudo make install
-	cp $tools/massdns/lists/resolvers.txt $tools/resources/.
+	#cp $tools/massdns/lists/resolvers.txt $tools/resources/.
 	mkdir -p $HOME/.config/puredns
-	cp $tools/massdns/lists/resolvers.txt $HOME/.config/puredns/resolvers.txt
+	cp $s2s_tools/resources/resolvers.txt $HOME/.config/puredns/resolvers.txt
 	
 	
 	installToolGit Interlace https://github.com/codingo/Interlace.git

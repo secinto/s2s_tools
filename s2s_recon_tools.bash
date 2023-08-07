@@ -681,6 +681,7 @@ dns_enum() {
 	fi
 	
 	local domains=$defaultPath/domains.txt
+	local inputTXT=$reconPath/subf.$dns.output.txt
 	local output=$brutePath/$dns.enum.brute.txt
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
 
@@ -692,6 +693,10 @@ dns_enum() {
 	
 	if [ "$#" -gt 1 ]; then
 		local run=true
+	fi
+	
+	if [ ! -s "$inputTXT" ]; then
+		local run=false
 	fi
 	
 	if $run; then
@@ -756,6 +761,11 @@ dns_fuzz() {
 	if [ "$#" -gt 1 ]; then
 		local run=true
 	fi
+	
+	if [ ! -s "$inputTXT" ]; then
+		local run=false
+	fi
+
 	
 	if $run; then
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
