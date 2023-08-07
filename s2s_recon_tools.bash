@@ -140,6 +140,8 @@ subf(){
 		jq .host $outputJSON | sed "s/\"//g" | sed 's/\\n/\'$'\n''/g' | tee $outputTXT > /dev/null
 
 		cat $outputTXT | sort -u | anew $output > /dev/null
+		cat $brutePath/$dns.enum.brute.txt | sort -u | anew $output > /dev/null
+		cat $brutePath/$dns.fuzz.resv.txt | sort -u | anew $output > /dev/null
 
 		echo "Not performing $FUNCNAME since it has been performed recently."
 	fi
@@ -684,6 +686,7 @@ dns_enum() {
 	local inputTXT=$reconPath/subf.$dns.output.txt
 	local output=$brutePath/$dns.enum.brute.txt
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
+	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
 	local run=false
 	
@@ -713,7 +716,7 @@ dns_enum() {
 		echo "Current time: $now"
 		echo "==========================================================================="
 
-		puredns bruteforce -q $wordlist $dns | tee $output 
+		puredns bruteforce -q $wordlist $dns --resolvers $resolvers | tee $output 
 		cat $output | anew $domains
 
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -755,7 +758,7 @@ dns_fuzz() {
 
 	local outputRaw=$brutePath/$dns.fuzz.raw.txt
 	local outputResolved=$brutePath/$dns.fuzz.resv.txt
-	local resolvers=/opt/tools/resources/resolvers.txt
+	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
 	local run=false
 	
@@ -788,7 +791,7 @@ dns_fuzz() {
 		alterx -l $inputTXT -en -o $outputRaw
 		
 		#shuffledns -d $dns -l $outputRaw -r $resolvers -silent | tee $outputResolved
-		puredns resolve $outputRaw -q | tee $outputResolved
+		puredns resolve $outputRaw -q --resolvers $resolvers | tee $outputResolved
 		
 		cat $outputResolved | anew $domains
 
