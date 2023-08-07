@@ -16,6 +16,10 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+alias ls='ls -la --color=auto'
+
+
 if [ -d "/opt/tools/s2s_tools" ] ; then
 	source /opt/tools/s2s_tools/.s2s_profile
 fi
+

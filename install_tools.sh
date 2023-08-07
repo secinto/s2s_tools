@@ -113,14 +113,15 @@ function installGOTools() {
 	go install -v github.com/d3mondev/puredns/v2@latest
 	go install -v github.com/rverton/webanalyze/cmd/webanalyze@latest
 	
-	webanalyze -update
-	
 	mkdir -p ~/.config/nmapParser
 	mkdir -p ~/.config/simpleFinder
 	mkdir -p ~/.config/duplicateRemover
 	cp $s2s_tools/resources/settings.yaml ~/.config/duplicateRemover/.
 	cp $s2s_tools/resources/settings.yaml ~/.config/simpleFinder/.
 	cp $s2s_tools/resources/settings.yaml ~/.config/nmapParser/.
+	
+	cd ~
+	webanalyze -update
 	
 }
 
