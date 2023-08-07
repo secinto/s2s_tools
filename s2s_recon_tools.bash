@@ -681,7 +681,6 @@ dns_enum() {
 	fi
 	
 	local domains=$defaultPath/domains.txt
-	local subf_output=$reconPath/subf.$dns.output.json
 	local output=$brutePath/$dns.enum.brute.txt
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
 
@@ -693,10 +692,6 @@ dns_enum() {
 	
 	if [ "$#" -gt 1 ]; then
 		local run=true
-	fi
-
-	if [ ! -s $subf_output ]; then
-		local run=false
 	fi
 	
 	if $run; then
@@ -760,10 +755,6 @@ dns_fuzz() {
 	
 	if [ "$#" -gt 1 ]; then
 		local run=true
-	fi
-
-	if [ ! -f $inputTXT ]; then
-		local run=false
 	fi
 	
 	if $run; then
