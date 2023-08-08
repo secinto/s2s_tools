@@ -35,16 +35,16 @@ subf_multi() {
 			echo "Checking $outputJSON"
 			if checkFile $outputJSON; then
 				subf_internal "$line" "$outputTXT" "$outputJSON"
-				echo "$line" | anew $outputTXT > /dev/null
 
 				sendToELK $outputJSON subf
 				echo "--- All subdomains for $line enumerated --- "
 			else 
 				echo "Not performing $FUNCNAME since it has been performed recently."
 			fi
+			echo "$line" | anew $outputTXT > /dev/null
 			
 			dns_brute "$line" "multi"
-			echo "--- Subdomains are enumerated using brute force --- "
+			echo "--- Subdomains for $line are resolved using brute force --- "
 			
 		done
 	else
@@ -125,7 +125,6 @@ subf(){
 	
 	if $run; then
 		subf_internal $project $outputTXT $outputJSON
-		echo "$project" | anew $outputTXT > /dev/null
 		
 		sendToELK $outputJSON subf
 		echo "--- All subdomains for $project enumerated --- "
@@ -133,12 +132,14 @@ subf(){
 		echo "Not performing $FUNCNAME since it has been performed recently."
 	fi
 	
+	echo "$project" | anew $outputTXT > /dev/null
+	
 	echo "============================================================================"
 	echo "Simple domain file $output has been created!"
 	echo "============================================================================"
 
 	dns_brute "$@"
-	echo "--- Subdomains are resolved using brute force --- "
+	echo "--- Subdomains for $project are resolved using brute force --- "
 
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 	echo "==========================================================================="
