@@ -659,13 +659,13 @@ dns_brute() {
 			echo "Not resolving entries from subfinder, less than 50"
 			cat $inputTXT | anew $outputTXT
 		fi
-		echo "Adding resolved domains from subfinder to $domains"
 	else
 		echo "No subdomains input $inputTXT available"
 	fi
 
 	dns_enum "$@"
 	dns_fuzz "$@"
+	echo "Adding resolved domains from subfinder to $domains"
 	
 	cat $outputTXT | anew $domains
 
@@ -714,7 +714,7 @@ dns_enum() {
 		local run=false
 	else
 		local dnsEntries="$(cat $inputTXT | wc -l)"
-		if [[ "$dnsEntries" -lt 2 ]]; then
+		if [[ "$dnsEntries" -lt 3 ]]; then
 			local run=false
 		fi
 	fi
@@ -788,7 +788,7 @@ dns_fuzz() {
 		local run=false
 	else
 		local dnsEntries="$(cat $inputTXT | wc -l)"
-		if [ $dnsEntries -lt 2 ]; then
+		if [ $dnsEntries -lt 3 ]; then
 			local run=false
 		fi
 	fi
