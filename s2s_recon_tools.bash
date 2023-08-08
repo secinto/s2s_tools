@@ -37,7 +37,7 @@ subf_multi() {
 				subf_internal "$line" "$outputTXT" "$outputJSON" "$domains"
 				sendToELK $outputJSON subf
 				echo "--- All subdomains for $line enumerated --- "
-				dns_brute "$line" true
+				dns_brute "$line"
 				echo "--- Subdomains are enumerated using brute force --- "
 			else 
 			
@@ -721,11 +721,11 @@ dns_enum() {
 	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
 	local run=false
-	
+
 	if checkFile $output; then
 		local run=true
 	fi
-	
+
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
 	else
@@ -748,7 +748,7 @@ dns_enum() {
 		echo "Current time: $now"
 		echo "==========================================================================="
 
-		puredns bruteforce -q $wordlist $dns --resolvers $resolvers | tee $output 
+		puredns bruteforce $wordlist $dns -q --resolvers $resolvers | tee $output 
 		cat $output | anew $domains
 		cat $output | anew $inputTXT
 		
