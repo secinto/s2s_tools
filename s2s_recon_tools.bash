@@ -41,9 +41,19 @@ subf_multi() {
 				echo "--- Subdomains are enumerated using brute force --- "
 			else 
 			
-				jq .host $outputJSON | sed "s/\"//g" | sed 's/\\n/\'$'\n''/g' | tee $outputTXT > /dev/null
+				if [ -f "$outputJSON" ]; then
+					jq .host $outputJSON | sed "s/\"//g" | sed 's/\\n/\'$'\n''/g' | tee $outputTXT > /dev/null
+				fi
 
-				cat $outputTXT | sort -u | anew $domains > /dev/null
+				if [ -f "$outputTXT" ]; then
+						cat $outputTXT | sort -u | anew $domains > /dev/null
+				fi
+				if [ -f "$brutePath/$line.enum.brute.txt" ]; then
+						cat $brutePath/$line.enum.brute.txt | sort -u | anew $domains > /dev/null
+				fi
+				if [ -f "$brutePath/$line.fuzz.resv.txt" ]; then
+						cat $brutePath/$line.fuzz.resv.txt | sort -u | anew $domains > /dev/null
+				fi
 
 				echo "Not performing $FUNCNAME since it has been performed recently."
 			fi
@@ -75,6 +85,7 @@ subf_internal() {
 	local output=$4
 
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
+	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
 	echo "============================================================================"
 	echo "Performing subdomain enumeration using subfinder for project $project"
@@ -82,7 +93,7 @@ subf_internal() {
 	echo "Current time: $now"
 	echo "============================================================================"
 	
-	subfinder -es crtsh -oJ -o "$outputJSON" -d $domain
+	subfinder -oJ -o "$outputJSON" -d $domain -rL $resolvers
 
 	echo "============================================================================"
 	echo "JSON output file $output with subdomains has been created."
@@ -92,7 +103,7 @@ subf_internal() {
 
 	jq .host $outputJSON | sed "s/\"//g" | sed 's/\\n/\'$'\n''/g' | tee $outputTXT > /dev/null
 
-	cat $outputTXT | sort -u | anew $output > /dev/null
+	#cat $outputTXT | sort -u | anew $output > /dev/null
 
 	echo "$domain" | anew $output > /dev/null
 
@@ -137,11 +148,19 @@ subf(){
 		echo "--- Subdomains are enumerated using brute force --- "
 	else 
 	
-		jq .host $outputJSON | sed "s/\"//g" | sed 's/\\n/\'$'\n''/g' | tee $outputTXT > /dev/null
+		if [ -f "$outputJSON" ]; then
+			jq .host $outputJSON | sed "s/\"//g" | sed 's/\\n/\'$'\n''/g' | tee $outputTXT > /dev/null
+		fi
 
-		cat $outputTXT | sort -u | anew $output > /dev/null
-		cat $brutePath/$dns.enum.brute.txt | sort -u | anew $output > /dev/null
-		cat $brutePath/$dns.fuzz.resv.txt | sort -u | anew $output > /dev/null
+		if [ -f "$outputTXT" ]; then
+				cat $outputTXT | sort -u | anew $domains > /dev/null
+		fi
+		if [ -f "$brutePath/$line.enum.brute.txt" ]; then
+				cat $brutePath/$line.enum.brute.txt | sort -u | anew $domains > /dev/null
+		fi
+		if [ -f "$brutePath/$line.fuzz.resv.txt" ]; then
+				cat $brutePath/$line.fuzz.resv.txt | sort -u | anew $domains > /dev/null
+		fi
 
 		echo "Not performing $FUNCNAME since it has been performed recently."
 	fi
@@ -654,7 +673,20 @@ dns_brute() {
 		# Needed for multi domains to brute force each entry
 		local dns=$1
 	fi
+
+	local inputTXT=$reconPath/subf.$dns.output.txt
+	local outputTXT=$reconPath/subf.$dns.resv.txt
+	local domains=$defaultPath/domains.txt
 	
+	# Resolving DNS entries found by subfinder. If resolved they are added to domains.
+	if [ -s "$inputTXT" ]; then
+		local dnsEntries="$(cat $inputTXT | wc -l)"
+		if [ $dnsEntries -ge 2 ]; then
+			puredns resolve $inputTXT -q --resolvers $resolvers | tee $outputTXT
+			cat $outputTXT | sort -u | anew $domains > /dev/null
+		fi
+	fi
+
 	dns_enum "$@"
 	dns_fuzz "$@"
 }
@@ -683,10 +715,9 @@ dns_enum() {
 	fi
 	
 	local domains=$defaultPath/domains.txt
-	local inputTXT=$reconPath/subf.$dns.output.txt
+	local inputTXT=$reconPath/subf.$dns.resv.txt
 	local output=$brutePath/$dns.enum.brute.txt
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
-	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
 	local run=false
 	
@@ -694,17 +725,17 @@ dns_enum() {
 		local run=true
 	fi
 	
-	if [ "$#" -gt 1 ]; then
-		local run=true
-	fi
-	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
 	else
 		local dnsEntries="$(cat $inputTXT | wc -l)"
-		if [ $dnsEntries -lt 5 ]; then
+		if [ $dnsEntries -lt 2 ]; then
 			local run=false
 		fi
+	fi
+	
+	if [ "$#" -gt 1 ]; then
+		local run=true
 	fi
 	
 	if $run; then
@@ -718,7 +749,8 @@ dns_enum() {
 
 		puredns bruteforce -q $wordlist $dns --resolvers $resolvers | tee $output 
 		cat $output | anew $domains
-
+		cat $output | anew $inputTXT
+		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 		echo "==========================================================================="
 		echo "Workflow ${FUNCNAME[0]} finished"
@@ -726,7 +758,10 @@ dns_enum() {
 		echo "==========================================================================="			
 	else
 		echo "Not performing $FUNCNAME since it has been performed recently."
-		cat $output | anew $domains
+		if [ -f "$output" ]; then
+			cat $output | anew $domains
+			cat $output | anew $inputTXT
+		fi
 	fi
 }	
 
@@ -754,7 +789,7 @@ dns_fuzz() {
 	fi
 	
 	local domains=$defaultPath/domains.txt
-	local inputTXT=$reconPath/subf.$dns.output.txt
+	local inputTXT=$reconPath/subf.$dns.resv.txt
 
 	local outputRaw=$brutePath/$dns.fuzz.raw.txt
 	local outputResolved=$brutePath/$dns.fuzz.resv.txt
@@ -766,19 +801,18 @@ dns_fuzz() {
 		local run=true
 	fi
 	
-	if [ "$#" -gt 1 ]; then
-		local run=true
-	fi
-	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
 	else
 		local dnsEntries="$(cat $inputTXT | wc -l)"
-		if [ $dnsEntries -lt 5 ]; then
+		if [ $dnsEntries -lt 2 ]; then
 			local run=false
 		fi
 	fi
 
+	if [ "$#" -gt 1 ]; then
+		local run=true
+	fi
 	
 	if $run; then
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -794,7 +828,8 @@ dns_fuzz() {
 		puredns resolve $outputRaw -q --resolvers $resolvers | tee $outputResolved
 		
 		cat $outputResolved | anew $domains
-
+		cat $outputResolved | anew $inputTXT
+		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 		echo "==========================================================================="
 		echo "Workflow ${FUNCNAME[0]} finished"
@@ -802,7 +837,10 @@ dns_fuzz() {
 		echo "==========================================================================="			
 	else
 		echo "Not performing $FUNCNAME since it has been performed recently."
-		cat $outputResolved | anew $domains
+		if [ -f "$outputResolved" ]; then
+			cat $outputResolved | anew $domains
+			cat $outputResolved | anew $inputTXT
+		fi
 	fi
 }	
 
