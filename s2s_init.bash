@@ -13,15 +13,10 @@ send_results="false"
 #============================================================================
 function initialize() {
 	if [ "$#" -ge 1 ]; then
-	
-		if [[ "$project" == "$1" ]]; then
-			true
-		else 
-			project=$1
-			initProject
-			echo "Initialization for $project finished"
-			true
-		fi
+		project=$1
+		initProject
+		echo "Initialization for $project finished"
+		true
 	else
 		echo "No project/domain to perform analysis on has been specified."
 		false

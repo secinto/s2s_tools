@@ -36,7 +36,7 @@ subf_multi() {
 			if checkFile $outputJSON; then
 				subf_internal "$line" "$outputTXT" "$outputJSON"
 
-				sendToELK $outputJSON subf
+				sendToELK $outputJSON subf other
 				echo "--- All subdomains for $line enumerated --- "
 			else 
 				echo "Not performing $FUNCNAME since it has been performed recently."
@@ -654,7 +654,7 @@ dns_brute() {
 		local dnsEntries="$(cat $inputTXT | wc -l)"
 		echo "Found $dnsEntries in $inputTXT"
 		if [[ "$dnsEntries" -ge 50 ]]; then
-			puredns resolve $inputTXT -q -r $resolvers | tee $outputTXT
+			puredns resolve $inputTXT -q -r $resolvers | tee $outputTXT > /dev/null
 		else
 			echo "Not resolving entries from subfinder, less than 50"
 			cat $inputTXT | anew $outputTXT > /dev/null
@@ -663,8 +663,8 @@ dns_brute() {
 		echo "No subdomains input $inputTXT available"
 	fi
 
-	dns_enum "$dns"
-	dns_fuzz "$dns"
+	dns_enum "$@" 
+	dns_fuzz "$@" 
 	echo "==========================================================================="
 	echo "Adding resolved domains from subfinder to $domains"
 	echo "==========================================================================="
@@ -714,7 +714,7 @@ dns_enum() {
 		local run=true
 	fi
 
-	if [ "$#" -gt 1 ]; then
+	if [[ "$#" -gt 1 && "$2" == "true" ]]; then
 		local run=true
 	fi
 	
@@ -736,7 +736,7 @@ dns_enum() {
 		echo "Current time: $now"
 		echo "==========================================================================="
 
-		puredns bruteforce $wordlist $dns -q -r $resolvers | tee $output 
+		puredns bruteforce $wordlist $dns -q -r $resolvers | tee $output > /dev/null 
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 		echo "==========================================================================="
@@ -789,7 +789,7 @@ dns_fuzz() {
 		local run=true
 	fi
 	
-	if [ "$#" -gt 1 ]; then
+	if [[ "$#" -gt 1 && "$2" == "true" ]]; then
 		local run=true
 	fi
 	
@@ -813,7 +813,7 @@ dns_fuzz() {
 		alterx -l $inputTXT -en -o $outputRaw
 		
 		#shuffledns -d $dns -l $outputRaw -r $resolvers -silent | tee $outputResolved
-		puredns resolve $outputRaw -q -r $resolvers | tee $outputResolved
+		puredns resolve $outputRaw -q -r $resolvers | tee $outputResolved > /dev/null
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 		echo "==========================================================================="
