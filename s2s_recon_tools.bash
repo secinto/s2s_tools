@@ -718,6 +718,7 @@ dns_enum() {
 	local inputTXT=$reconPath/subf.$dns.resv.txt
 	local output=$brutePath/$dns.enum.brute.txt
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
+	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
 	local run=false
 	
