@@ -681,10 +681,15 @@ dns_brute() {
 	# Resolving DNS entries found by subfinder. If resolved they are added to domains.
 	if [ -s "$inputTXT" ]; then
 		local dnsEntries="$(cat $inputTXT | wc -l)"
-		if [ $dnsEntries -ge 2 ]; then
+		echo "Found $dnsEntries in $inputTXT"
+		if [[ "$dnsEntries" -ge 50 ]]; then
 			puredns resolve $inputTXT -q --resolvers $resolvers | tee $outputTXT
-			cat $outputTXT | sort -u | anew $domains > /dev/null
+		else
+			echo "Not resolving entries from subfinder, less than 50"
+			cat $inputTXT | anew $outputTXT
 		fi
+		echo "Adding resolved domains from subfinder to $domains"
+		cat $outputTXT | anew $domains
 	fi
 
 	dns_enum "$@"
@@ -730,7 +735,7 @@ dns_enum() {
 		local run=false
 	else
 		local dnsEntries="$(cat $inputTXT | wc -l)"
-		if [ $dnsEntries -lt 2 ]; then
+		if [[ "$dnsEntries" -lt 2 ]]; then
 			local run=false
 		fi
 	fi
@@ -748,7 +753,7 @@ dns_enum() {
 		echo "Current time: $now"
 		echo "==========================================================================="
 
-		puredns bruteforce $wordlist $dns -q --resolvers $resolvers | tee $output 
+		puredns bruteforce $wordlist $dns -q -r $resolvers | tee $output 
 		cat $output | anew $domains
 		cat $output | anew $inputTXT
 		
@@ -826,7 +831,7 @@ dns_fuzz() {
 		alterx -l $inputTXT -en -o $outputRaw
 		
 		#shuffledns -d $dns -l $outputRaw -r $resolvers -silent | tee $outputResolved
-		puredns resolve $outputRaw -q --resolvers $resolvers | tee $outputResolved
+		puredns resolve $outputRaw -q -r $resolvers | tee $outputResolved
 		
 		cat $outputResolved | anew $domains
 		cat $outputResolved | anew $inputTXT
