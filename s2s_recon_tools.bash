@@ -37,7 +37,7 @@ subf_multi() {
 				subf_internal "$line" "$outputTXT" "$outputJSON" "$domains"
 				sendToELK $outputJSON subf
 				echo "--- All subdomains for $line enumerated --- "
-				dns_brute "$line"
+				dns_brute "$line" "multi"
 				echo "--- Subdomains are enumerated using brute force --- "
 			else 
 			
@@ -46,13 +46,13 @@ subf_multi() {
 				fi
 
 				if [ -f "$outputTXT" ]; then
-						cat $outputTXT | sort -u | anew $domains > /dev/null
+					cat $outputTXT | anew $domains > /dev/null
 				fi
 				if [ -f "$brutePath/$line.enum.brute.txt" ]; then
-						cat $brutePath/$line.enum.brute.txt | sort -u | anew $domains > /dev/null
+					cat $brutePath/$line.enum.brute.txt | anew $domains > /dev/null
 				fi
 				if [ -f "$brutePath/$line.fuzz.resv.txt" ]; then
-						cat $brutePath/$line.fuzz.resv.txt | sort -u | anew $domains > /dev/null
+					cat $brutePath/$line.fuzz.resv.txt | anew $domains > /dev/null
 				fi
 
 				echo "Not performing $FUNCNAME since it has been performed recently."
@@ -154,13 +154,13 @@ subf(){
 		fi
 
 		if [ -f "$outputTXT" ]; then
-				cat $outputTXT | sort -u | anew $domains > /dev/null
+				cat $outputTXT | anew $domains > /dev/null
 		fi
 		if [ -f "$brutePath/$line.enum.brute.txt" ]; then
-				cat $brutePath/$line.enum.brute.txt | sort -u | anew $domains > /dev/null
+				cat $brutePath/$line.enum.brute.txt | anew $domains > /dev/null
 		fi
 		if [ -f "$brutePath/$line.fuzz.resv.txt" ]; then
-				cat $brutePath/$line.fuzz.resv.txt | sort -u | anew $domains > /dev/null
+				cat $brutePath/$line.fuzz.resv.txt | anew $domains > /dev/null
 		fi
 
 		echo "Not performing $FUNCNAME since it has been performed recently."
@@ -734,6 +734,10 @@ dns_enum() {
 		local run=true
 	fi
 
+	if [ "$#" -gt 1 ]; then
+		local run=true
+	fi
+	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
 	else
@@ -741,10 +745,6 @@ dns_enum() {
 		if [[ "$dnsEntries" -lt 2 ]]; then
 			local run=false
 		fi
-	fi
-	
-	if [ "$#" -gt 1 ]; then
-		local run=true
 	fi
 	
 	if $run; then
@@ -810,6 +810,10 @@ dns_fuzz() {
 		local run=true
 	fi
 	
+	if [ "$#" -gt 1 ]; then
+		local run=true
+	fi
+	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
 	else
@@ -819,10 +823,6 @@ dns_fuzz() {
 		fi
 	fi
 
-	if [ "$#" -gt 1 ]; then
-		local run=true
-	fi
-	
 	if $run; then
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 
