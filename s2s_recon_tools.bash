@@ -94,7 +94,8 @@ subf_internal() {
 	echo "============================================================================"
 	
 	subfinder -oJ -o "$outputJSON" -d $domain -rL $resolvers
-
+	touch $outputJSON
+	
 	echo "============================================================================"
 	echo "JSON output file $output with subdomains has been created."
 	echo "Creating simple domain file $output "
