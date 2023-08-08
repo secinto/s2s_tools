@@ -678,13 +678,15 @@ dns_brute() {
 	local inputTXT=$reconPath/subf.$dns.output.txt
 	local outputTXT=$reconPath/subf.$dns.resv.txt
 	local domains=$defaultPath/domains.txt
+	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
+
 	
 	# Resolving DNS entries found by subfinder. If resolved they are added to domains.
 	if [ -s "$inputTXT" ]; then
 		local dnsEntries="$(cat $inputTXT | wc -l)"
 		echo "Found $dnsEntries in $inputTXT"
 		if [[ "$dnsEntries" -ge 50 ]]; then
-			puredns resolve $inputTXT -q --resolvers $resolvers | tee $outputTXT
+			puredns resolve $inputTXT -q -r $resolvers | tee $outputTXT
 		else
 			echo "Not resolving entries from subfinder, less than 50"
 			cat $inputTXT | anew $outputTXT
