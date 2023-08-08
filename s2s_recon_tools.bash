@@ -190,7 +190,7 @@ dpux() {
 			rm $outputJSON
 		fi
 
-		cat $input | dnsx -silent -a -txt -srv -ns -mx -soa -axfr -cname -aaaa -resp -json -o $outputJSON 
+		cat $input | dnsx -a -txt -srv -ns -mx -soa -axfr -cname -aaaa -resp -json -o $outputJSON 
 		
 		
 		echo "============================================================================"
@@ -276,7 +276,7 @@ dnsmx() {
 		
 		cat $inputAll | grep _domainkey | anew $inputTemp > /dev/null
 
-		cat $inputTemp | dnsx -silent -a -txt -mx -cname -aaaa -resp -json -o $outputJSON 
+		cat $inputTemp | dnsx -a -txt -mx -cname -aaaa -resp -json -o $outputJSON 
 		#cat $outputJSON | jq .a | sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/null//g' | sed 's/,//g' | sed 's/0.0.0.0//g' | \
 		#	sed 's/127.0.0.1//g' | sed 's/127::1//g' | sed 's/::1//g' | sed 's/127.000.000.001//g' | sed 's/localhost//g' | \
 		#	sed 's/\ //g' | sed 's/[[:blank:]]//g' | sed 's/[[:space:]]//g' | sed '/^$/d' | sort -u | tee $output
@@ -657,17 +657,25 @@ dns_brute() {
 			puredns resolve $inputTXT -q -r $resolvers | tee $outputTXT
 		else
 			echo "Not resolving entries from subfinder, less than 50"
-			cat $inputTXT | anew $outputTXT
+			cat $inputTXT | anew $outputTXT > /dev/null
 		fi
 	else
 		echo "No subdomains input $inputTXT available"
 	fi
 
-	dns_enum "$@"
-	dns_fuzz "$@"
+	dns_enum "$dns"
+	dns_fuzz "$dns"
+	echo "==========================================================================="
 	echo "Adding resolved domains from subfinder to $domains"
+	echo "==========================================================================="
 	
 	cat $outputTXT | anew $domains
+	
+	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
+	echo "==========================================================================="
+	echo "Workflow ${FUNCNAME[0]} finished"
+	echo "Current time: $now"
+	echo "==========================================================================="			
 
 }
 
@@ -729,7 +737,6 @@ dns_enum() {
 		echo "==========================================================================="
 
 		puredns bruteforce $wordlist $dns -q -r $resolvers | tee $output 
-		cat $output | anew $inputTXT
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 		echo "==========================================================================="
@@ -738,10 +745,12 @@ dns_enum() {
 		echo "==========================================================================="			
 	else
 		echo "Not performing $FUNCNAME since it has been performed recently."
-		if [ -f "$output" ]; then
-			cat $output | anew $inputTXT
-		fi
 	fi
+	
+	if [ -f "$output" ]; then
+		cat $output | anew $inputTXT > /dev/null
+	fi
+
 }	
 
 #============================================================================
@@ -775,7 +784,7 @@ dns_fuzz() {
 	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
 	local run=false
-	
+
 	if checkFile $outputResolved; then
 		local run=true
 	fi
@@ -816,7 +825,7 @@ dns_fuzz() {
 	fi
 	
 	if [ -f "$outputResolved" ]; then
-		cat $outputResolved | anew $inputTXT
+		cat $outputResolved | anew $inputTXT > /dev/null
 	fi
 
 }	
