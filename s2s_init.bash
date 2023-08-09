@@ -178,3 +178,12 @@ function createElasticEnvironment() {
 function joinZerotierNetwork() {
 	zerotier-cli join $ZEROTIER_NETWORK_ID
 }
+
+function getResultsAndCreateReport() {
+	
+	getRemoteReconResults "$@"
+	cd /opt/tools/report_generator_automatic
+	./main -language 2 -fetchData 1 -domain $project
+	cd ~
+}
+	

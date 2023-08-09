@@ -723,14 +723,16 @@ function createServicesJSON() {
 	local input=$reconPath/ports.$project.output.xml
 	
 	local fullScan=false
+
+	local output=$defaultPath/findings/services.json
+
 	
 	if [ $# -eq 2 ]; then
 		local input=$defaultPath/nmap/dpux_clean.xml
 		local fullScan=true
+		local output=$defaultPath/findings/services_full.json
 		echo "Using info from full scan for services.json"
 	fi		
-
-	local output=$defaultPath/findings/services.json
 
 	if [ -s $input ]; then
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"

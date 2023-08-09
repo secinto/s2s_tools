@@ -453,7 +453,7 @@ function fullServiceScan() {
 			fi
 
 			if $run; then
-				sudo nmap -v -Pn $scan_ports -sV --script=default,vuln -A --oX $defaultPath/nmap/$line.xml $line
+				sudo nmap -v -Pn $scan_ports -sV -sC -A -oX $defaultPath/nmap/$line.xml $line
 			fi
 			
 		done <<< "$ips"
