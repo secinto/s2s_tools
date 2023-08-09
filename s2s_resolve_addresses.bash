@@ -104,7 +104,7 @@ function getIPInfoAndCleanDPUx() {
 #			echo "============================================================================"	
 #			echo "$ipsToRemove"
 #			echo "============================================================================"
-#			cat $input | tee $cleanedInput 1>/dev/null 2>&1
+			cat $input | tee $cleanedInput > /dev/null
 #			if [ ! -z "$ipsToRemove" ]; then
 #			
 #				while read -r line
