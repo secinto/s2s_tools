@@ -441,7 +441,7 @@ function fullServiceScan() {
 			if [[ ! -z "$open_tcp_ports" && ! -z "$open_udp_ports" ]]; then
 				echo "Open TCP ports: $open_tcp_ports"
 				echo "Open UDP ports: $open_udp_ports"
-				local scan_ports="-sT -sU -p T:$open_tcp_portsU:$open_udp_ports"
+				local scan_ports="-sT -sU -p T:$open_tcp_ports,U:$open_udp_ports"
 			elif [[ ! -z "$open_tcp_ports" && -z "$open_udp_ports" ]]; then
 				echo "Open TCP ports: $open_tcp_ports"
 				local scan_ports="-sT -p T:$open_tcp_ports"
@@ -453,7 +453,7 @@ function fullServiceScan() {
 			fi
 
 			if $run; then
-				sudo nmap -v -Pn $scan_ports -sV -oX $defaultPath/nmap/$line.xml $line --host-timeout 1800
+				sudo nmap -v -Pn $scan_ports -sV --script=default,vuln -A --oX $defaultPath/nmap/$line.xml $line
 			fi
 			
 		done <<< "$ips"
