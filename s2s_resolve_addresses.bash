@@ -98,22 +98,22 @@ function getIPInfoAndCleanDPUx() {
 				echo "$json" | jq '.' | tee $result
 			fi
 			
-			local ipsToRemove="$(cat $result | jq -r 'select(.org != null) | select(.org | contains("Microsoft")) | .ip')"
-			echo "============================================================================"
-			echo "IP addresses which will be removed from dpux.txt"
-			echo "============================================================================"	
-			echo "$ipsToRemove"
-			echo "============================================================================"
-			cat $input | tee $cleanedInput 1>/dev/null 2>&1
-			if [ ! -z "$ipsToRemove" ]; then
-			
-				while read -r line
-				do
-					sed -i "/$line/d" "$cleanedInput"
-				done <<< "$ipsToRemove"
-			else
-				echo "No IP addresses are set to be removed"
-			fi
+#			local ipsToRemove="$(cat $result | jq -r 'select(.org != null) | select(.org | contains("Microsoft")) | .ip')"
+#			echo "============================================================================"
+#			echo "IP addresses which will be removed from dpux.txt"
+#			echo "============================================================================"	
+#			echo "$ipsToRemove"
+#			echo "============================================================================"
+#			cat $input | tee $cleanedInput 1>/dev/null 2>&1
+#			if [ ! -z "$ipsToRemove" ]; then
+#			
+#				while read -r line
+#				do
+#					sed -i "/$line/d" "$cleanedInput"
+#				done <<< "$ipsToRemove"
+#			else
+#				echo "No IP addresses are set to be removed"
+#			fi
 		else
 			echo "S2S_IPINFO_TOKEN environment variable not set"
 		fi
