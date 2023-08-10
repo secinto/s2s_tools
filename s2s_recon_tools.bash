@@ -980,6 +980,8 @@ recon() {
 	echo "--- Additional IP info obtained --- "
 	ports "$@"
 	echo "--- All open ports for IPs are identified --- "
+	createServicesJSON "$@"
+	echo "--- Created services JSON --- "
 	generateHostMappings "$@"
 	echo "--- Create port hostname mappings --- "
 	http_from_all "$@"
@@ -1001,7 +1003,7 @@ recon() {
 	fullNmapScan "$@"
 	echo "--- Performed a full Nmap scan over cleaned IPs --- "
 	createServicesJSON "$@" true
-	echo "--- Created services JSON --- "
+	echo "--- Created full services JSON --- "
 	cleanZeroFiles 
 	echo "--- Removed zero files --- "
 
