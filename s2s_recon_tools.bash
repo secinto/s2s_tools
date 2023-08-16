@@ -342,6 +342,7 @@ ports() {
 		echo "Required input $input doesn't exist!"
 		dpux "$@"
 	fi
+	
 	if [ -z $target ]; then
 		sudo nmap -Pn $ports -vv -T3 -iL $input -oX $output --host-timeout 600
 		#sudo chown samareina:researchers $output
@@ -359,8 +360,6 @@ ports() {
 	echo "============================================================================"
 
 	jq -r '[.ip, .port] | @csv' $outputJSON | sed "s/\"//g" | sed "s/\,/\:/g" | sort -u | tee $outputTXT
-	
-	#sudo chown samareina:researchers $outputTXT
 	
 	xsltproc $output -o $(changeFileExtension $output "html")
 		
@@ -845,7 +844,7 @@ do_clean() {
 		return
 	fi
 	
-	local domains=$defaultPath/domains_clean.txt
+	local domains=$defaultPath/domains_clean_with_http_ports.txt
 	local ips=$reconPath/dpux_clean.txt
 
 	if [ -s "$domains" ]; then
@@ -978,7 +977,7 @@ recon() {
 	echo "--- All IPs are resolved --- "
 	getIPInfoAndCleanDPUx "$@"
 	echo "--- Additional IP info obtained --- "
-	ports "$@"
+	ports "$@" 1000
 	echo "--- All open ports for IPs are identified --- "
 	createServicesJSON "$@"
 	echo "--- Created services JSON --- "

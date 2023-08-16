@@ -179,11 +179,15 @@ function joinZerotierNetwork() {
 	zerotier-cli join $ZEROTIER_NETWORK_ID
 }
 
-function getResultsAndCreateReport() {
-	
-	getRemoteReconResults "$@"
+function createReport() {
+	local report=$1
 	cd /opt/tools/report_generator_automatic
-	./main -language 2 -fetchData 1 -domain $project
+	./main -language 2 -fetchData 1 -domain $report
 	cd ~
+}
+
+function getResultsAndCreateReport() {
+	getRemoteReconResults "$@"
+	createReport "$@"
 }
 	
