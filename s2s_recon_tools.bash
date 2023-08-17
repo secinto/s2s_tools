@@ -999,10 +999,10 @@ recon() {
 	echo "--- web technologies obtained from HTTP servers"
 	getWebserversWithProtocolIssues "$@" 
 	echo "--- Obtained web servers with protocol issues --- "
-	fullNmapScan "$@"
-	echo "--- Performed a full Nmap scan over cleaned IPs --- "
-	createServicesJSON "$@" true
-	echo "--- Created full services JSON --- "
+	#fullNmapScan "$@"
+	#echo "--- Performed a full Nmap scan over cleaned IPs --- "
+	#createServicesJSON "$@" true
+	#echo "--- Created full services JSON --- "
 	cleanZeroFiles 
 	echo "--- Removed zero files --- "
 
