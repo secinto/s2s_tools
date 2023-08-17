@@ -872,7 +872,7 @@ do_clean() {
 
 		# Create list of cleaned HTTPs servers without IPs.
 		local outputDomainURLs=$reconPath/https_servers_clean_domains.txt
-		cat	$reconPath/http_from.clean.domains.output.json | jq .url | sed 's/\"//g' | grep https | tee $outputDomainURLs > /dev/null
+		cat	$reconPath/http_from.clean.domains.output.json | jq .url | grep https | sed 's/\"//g' | sed 's/:443//g' | tee $outputDomainURLs > /dev/null
 		
 		# Create combined list of cleaned HTTP resolution
 		cat $reconPath/http_from.clean.ips.output.json | anew $reconPath/http_from.clean.output.json > /dev/null
@@ -920,9 +920,9 @@ function tls_check() {
 
 		#sslyze --targets_in $inputDomains --json_out $outputDomains
 		#sslyze --targets_in $inputIPs --json_out $outputIPs
-		rm $defaultPath/work/*tls.*
+		rm $defaultPath/work/*.json
 		
-		interlace -tL $input -o $defaultPath/work -c "$script -oA $defaultPath/work/_cleantarget_.tls.json --fast --assume-http --connect-timeout 900 --openssl-timeout 900 --warnings off _target_"
+		interlace -tL $input -o $defaultPath/work -c "$script -oJ $defaultPath/work/ --fast --assume-http --connect-timeout 900 --openssl-timeout 900 --warnings off _target_"
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 
