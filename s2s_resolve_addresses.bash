@@ -61,7 +61,13 @@ function getIPInfoAndCleanDPUx() {
 	initialize "$@"
 	local input=$reconPath/dpux.txt
 	local result=$reconPath/dpux_ipinfo.json
+	local hostIP=$reconPath/dpux_host_to_ip.json
+	local removedIPs=$reconPath/dpux_removed_ips.txt
 	local cleanedInput=$reconPath/dpux_clean.txt
+	
+	if [ -f "$removedIPs" ]; then
+		rm $removedIPs
+	fi
 		
 	if [ -s "$input" ]; then
 
@@ -98,22 +104,29 @@ function getIPInfoAndCleanDPUx() {
 				echo "$json" | jq '.' | tee $result
 			fi
 			
-#			local ipsToRemove="$(cat $result | jq -r 'select(.org != null) | select(.org | contains("Microsoft")) | .ip')"
-#			echo "============================================================================"
-#			echo "IP addresses which will be removed from dpux.txt"
-#			echo "============================================================================"	
-#			echo "$ipsToRemove"
-#			echo "============================================================================"
+			#local ipsToRemove="$(cat $result | jq -r 'select(.org != null) | select(.org | contains("Microsoft")) | .ip')"
+			cat $hostIP | grep autodiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs
+			cat $hostIP | grep lyncdiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs
+			cat $hostIP | grep sip. | jq .ip | sed 's/\"//g' | anew $removedIPs
+			cat $hostIP | grep enterpriseenrollment. | jq .ip | sed 's/\"//g' | anew $removedIPs
+
+			local ipsToRemove="$(cat $removedIPs)"
+			
+			echo "============================================================================"
+			echo "IP addresses which will be removed from dpux.txt"
+			echo "============================================================================"	
+			echo "$ipsToRemove"
+			echo "============================================================================"
 			cat $input | tee $cleanedInput > /dev/null
-#			if [ ! -z "$ipsToRemove" ]; then
-#			
-#				while read -r line
-#				do
-#					sed -i "/$line/d" "$cleanedInput"
-#				done <<< "$ipsToRemove"
-#			else
-#				echo "No IP addresses are set to be removed"
-#			fi
+			if [ ! -z "$ipsToRemove" ]; then
+			
+				while read -r line
+				do
+					sed -i "/$line/d" "$cleanedInput"
+				done <<< "$ipsToRemove"
+			else
+				echo "No IP addresses are set to be removed"
+			fi
 		else
 			echo "S2S_IPINFO_TOKEN environment variable not set"
 		fi
