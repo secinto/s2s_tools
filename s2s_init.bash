@@ -14,9 +14,6 @@ send_results="false"
 function initialize() {
 	if [ "$#" -ge 1 ]; then
 		project=$1
-		if [ "$#" -ge 2 ]; then	
-			rm -rf "/opt/s2s/$project"
-		fi
 		initProject
 		echo "Initialization for $project finished"
 		true
