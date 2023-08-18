@@ -33,10 +33,11 @@ function checkFinished() {
 # Starts the recon process for the specified project.
 #*****************************************************************************
 function performRecon() {
-	if ! initialize "$@"; then	
+	if ! initialize "$@" true; then	
 		echo "Exiting"
 		return
 	fi
+	
 
 	local started=$defaultPath/recon_started
 	
