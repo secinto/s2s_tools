@@ -344,10 +344,10 @@ ports() {
 	fi
 	
 	if [ -z $target ]; then
-		sudo nmap -Pn $ports -vv -T3 -iL $input -oX $output --host-timeout 600
+		sudo nmap -Pn $ports -vv -iL $input -oX $output --host-timeout 900
 		#sudo chown samareina:researchers $output
 	else
-		sudo nmap -Pn $ports -vv -T3 -oX $output --host-timeout 600 $target
+		sudo nmap -Pn $ports -vv -oX $output --host-timeout 600 $target
 		#sudo chown samareina:researchers $output
 	fi
 	
