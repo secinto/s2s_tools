@@ -741,10 +741,14 @@ function createServicesJSON() {
 		echo "Current time: $now"
 		echo "==========================================================================="
 
-		python3 $script -p -f $input | awk '{print "{\"ip\": \"" $1 "\", \"protocol\": \"" $4 "\", \"port\": \"" $5 "\", \"service\": \"" $6 "\"}"}' | tee $output.tmp &> /dev/null
-
-		cat $output.tmp | jq -s '.' | tee $output 
-		rm $output.tmp
+		python3 $script -p -f $input | awk '{print "{\"ip\": \"" $1 "\", \"protocol\": \"" $4 "\", \"port\": \"" $5 "\", \"service\": \"" $6 "\"}"}' | tee $output.jsonl &> /dev/null
+		
+		if $fullScan; then
+			cat $output.jsonl | anew $defaultPath/findings/services.json.jsonl 
+			cat $defaultPath/findings/services.json.jsonl | jq -s '.' | tee $defaultPath/findings/services.json 
+		fi
+		cat $output.jsonl | jq -s '.' | tee $output 
+		
 
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 		echo "==========================================================================="

@@ -999,17 +999,19 @@ recon() {
 	echo "--- web technologies obtained from HTTP servers"
 	getWebserversWithProtocolIssues "$@" 
 	echo "--- Obtained web servers with protocol issues --- "
-	#fullNmapScan "$@"
-	#echo "--- Performed a full Nmap scan over cleaned IPs --- "
-	#createServicesJSON "$@" true
-	#echo "--- Created full services JSON --- "
-	cleanZeroFiles 
-	echo "--- Removed zero files --- "
 
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 
 	echo "FINISHED $now" > $defaultPath/recon_finished
 	echo "--- RECON FINISHED $now --- "
+
+	fullNmapScan "$@"
+	echo "--- Performed a full Nmap scan over cleaned IPs --- "
+	createServicesJSON "$@" true
+	echo "--- Created full services JSON --- "
+	cleanZeroFiles 
+	echo "--- Removed zero files --- "
+
 
 
 	echo "==========================================================================="
