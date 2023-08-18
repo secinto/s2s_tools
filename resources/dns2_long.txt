@@ -92,6 +92,16 @@ international
 veranstaltung
 veranstaltungen
 trainee
+schluessel
+verschluesseln
+sicherung
+reparaturen
+prognose
+entwicklen
+inventar
+zettel
+einkaufen
+einreichen
 praxis
 werkzeuge
 integration
