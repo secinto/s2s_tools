@@ -152,7 +152,7 @@ function ffuf_dir() {
 		fi
 	fi
 
-	ffuf -fc $responseCodeFilter -w /opt/tools/s2s_tools/onelistforallmicro.txt -u $url/FUZZ -o $output -of json
+	ffuf -fc $responseCodeFilter -w /opt/tools/s2s_tools/resources/onelistforallmicro.txt -u $url/FUZZ -o $output -of json
 
 	sendToELK $output ffuf
 	
