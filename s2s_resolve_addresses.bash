@@ -109,6 +109,7 @@ function getIPInfoAndCleanDPUx() {
 			cat $hostIP | grep lyncdiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs
 			cat $hostIP | grep sip. | jq .ip | sed 's/\"//g' | anew $removedIPs
 			cat $hostIP | grep enterpriseenrollment. | jq .ip | sed 's/\"//g' | anew $removedIPs
+			cat $hostIP | grep enterpriseregistration. | jq .ip | sed 's/\"//g' | anew $removedIPs
 
 			local ipsToRemove="$(cat $removedIPs)"
 			
