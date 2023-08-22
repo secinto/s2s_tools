@@ -344,7 +344,7 @@ ports() {
 	fi
 	
 	if [ -z $target ]; then
-		sudo nmap -Pn $ports -vv -iL $input -oX $output --host-timeout 900
+		sudo nmap -Pn $ports -vv -T3 -iL $input -oX $output --host-timeout 900
 		#sudo chown samareina:researchers $output
 	else
 		sudo nmap -Pn $ports -vv -oX $output --host-timeout 600 $target
@@ -408,13 +408,13 @@ http_from() {
 		
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
-			cat $input | httpx -hash "mmh3" -random-agent -vhost -nf -location -cl -ct -td -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -srd $outputDir/$type -store-chain
+			cat $input | httpx -hash "mmh3" -random-agent -vhost -nf -location -cl -ct -td -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -srd $outputDir/$type
 			sendToELK $output httpx
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			cat $input | httpx -silent -hash "mmh3" -json -ip -nf -o $output -fr -maxr 10 -srd $outputDir/$type -store-chain
+			cat $input | httpx -silent -hash "mmh3" -json -ip -nf -o $output -fr -maxr 10 -srd $outputDir/$type 
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
