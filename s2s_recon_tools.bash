@@ -81,6 +81,7 @@ subf_internal() {
 	echo "============================================================================"
 	
 	subfinder -oJ -o "$outputJSON" -d $domain -rL $resolvers
+	# Not sure why it is done! Could be that the timestamp is not renewed?
 	touch $outputJSON
 	
 	echo "============================================================================"
@@ -650,6 +651,7 @@ dns_brute() {
 	
 	# Resolving DNS entries found by subfinder. If resolved they are added to domains.
 	if [ -s "$inputTXT" ]; then
+		echo "Adding $dns to $inputTXT"
 		echo "$dns" | anew $inputTXT
 		local dnsEntries="$(cat $inputTXT | wc -l)"
 		echo "Found $dnsEntries in $inputTXT"
@@ -659,12 +661,14 @@ dns_brute() {
 			echo "Not resolving entries from subfinder, less than 50"
 			cat $inputTXT | anew $outputTXT > /dev/null
 		fi
+		
+		dns_enum "$@" 
+		dns_fuzz "$@" 
+
 	else
 		echo "No subdomains input $inputTXT available"
 	fi
 
-	dns_enum "$@" 
-	dns_fuzz "$@" 
 	echo "==========================================================================="
 	echo "Adding resolved domains from subfinder to $domains"
 	echo "==========================================================================="
