@@ -91,7 +91,7 @@ function doRemoteRecon() {
 		echo "SSH base command: $ssh_base"
 
 		echo "Cleaning remote project folder for $project"
-		local ssh_command="rm /opt/s2s/$project/recon_started"
+		local ssh_command="rm -rf /opt/s2s/$project"
 		echo "SSH command $ssh_command"
 		local return="$(ssh $ssh_base -t $ssh_command)"
 

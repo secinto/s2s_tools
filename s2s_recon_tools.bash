@@ -707,23 +707,15 @@ dns_enum() {
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
 	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
-	local run=false
-
-	if checkFile $output; then
-		local run=true
-	fi
-
-	if [[ "$#" -gt 1 && "$2" == "true" ]]; then
-		local run=true
-	fi
+	local run=true
 	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
-	else
-		local dnsEntries="$(cat $inputTXT | wc -l)"
-		if [[ "$dnsEntries" -lt 3 ]]; then
-			local run=false
-		fi
+	#else
+	#	local dnsEntries="$(cat $inputTXT | wc -l)"
+	#	if [[ "$dnsEntries" -lt 3 ]]; then
+	#		local run=false
+	#	fi
 	fi
 	
 	if $run; then
@@ -743,7 +735,7 @@ dns_enum() {
 		echo "Current time: $now"
 		echo "==========================================================================="			
 	else
-		echo "Not performing $FUNCNAME since it has been performed recently."
+		echo "Not performing $FUNCNAME, input file $inputTXT is empty or missing."
 	fi
 	
 	if [ -f "$output" ]; then
@@ -782,23 +774,15 @@ dns_fuzz() {
 	local outputResolved=$brutePath/$dns.fuzz.resv.txt
 	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
-	local run=false
-
-	if checkFile $outputResolved; then
-		local run=true
-	fi
-	
-	if [[ "$#" -gt 1 && "$2" == "true" ]]; then
-		local run=true
-	fi
+	local run=true
 	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
-	else
-		local dnsEntries="$(cat $inputTXT | wc -l)"
-		if [ $dnsEntries -lt 3 ]; then
-			local run=false
-		fi
+	#else
+	#	local dnsEntries="$(cat $inputTXT | wc -l)"
+	#	if [ $dnsEntries -lt 3 ]; then
+	#		local run=false
+	#	fi
 	fi
 
 	if $run; then
@@ -820,7 +804,7 @@ dns_fuzz() {
 		echo "Current time: $now"
 		echo "==========================================================================="			
 	else
-		echo "Not performing $FUNCNAME since it has been performed recently."
+		echo "Not performing $FUNCNAME, input file $inputTXT is empty or missing."
 	fi
 	
 	if [ -f "$outputResolved" ]; then
