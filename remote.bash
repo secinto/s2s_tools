@@ -33,12 +33,7 @@ function checkFinished() {
 # Starts the recon process for the specified project.
 #*****************************************************************************
 function performRecon() {
-	if [ "$#" -ge 1 ]; then	
-		rm -rf "/opt/s2s/$1"
-	fi
-
-
-	if ! initialize "$@" true; then	
+	if ! initialize "$@"; then	
 		echo "Exiting"
 		return
 	fi

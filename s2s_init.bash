@@ -89,6 +89,12 @@ function doRemoteRecon() {
 		
 		local ssh_base="$SSH_S2S_USER@$SSH_S2S_SERVER"
 		echo "SSH base command: $ssh_base"
+
+		echo "Cleaning remote project folder for $project"
+		local ssh_command="rm /opt/s2s/$project/recon_started"
+		echo "SSH command $ssh_command"
+		local return="$(ssh $ssh_base -t $ssh_command)"
+
 			
 		if [ -f $defaultPath/multi_domains.txt ]; then
 			echo "Multi domain project"
