@@ -13,8 +13,6 @@ source /opt/tools/s2s_tools/s2s_main.bash
 #
 # export S2S_IPINFO_TOKEN=    ... ipinfo.io API token
 # export S2S_ELK_SERVER=      ... http://ip:9200 of the ELK server
-# export S2S_ELK_USER=		  ... Username of the ELK user to push data
+# export S2S_ELK_USER=        ... Username of the ELK user to push data
 # export S2S_ELK_PASS=        ... Password of the ELK user to push data
 # export ZEROTIER_NETWORK_ID= ... Optional. If the ELK server (or other servers are available via an zerotier network). 
-	
-

@@ -650,6 +650,7 @@ dns_brute() {
 	
 	# Resolving DNS entries found by subfinder. If resolved they are added to domains.
 	if [ -s "$inputTXT" ]; then
+		echo "$dns" | anew $inputTXT
 		local dnsEntries="$(cat $inputTXT | wc -l)"
 		echo "Found $dnsEntries in $inputTXT"
 		if [[ "$dnsEntries" -ge 50 ]]; then
@@ -701,7 +702,6 @@ dns_enum() {
 		local dns=$1
 	fi
 	
-	local domains=$defaultPath/domains.txt
 	local inputTXT=$reconPath/subf.$dns.resv.txt
 	local output=$brutePath/$dns.enum.brute.txt
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
@@ -767,7 +767,6 @@ dns_fuzz() {
 		local dns=$1
 	fi
 	
-	local domains=$defaultPath/domains.txt
 	local inputTXT=$reconPath/subf.$dns.resv.txt
 
 	local outputRaw=$brutePath/$dns.fuzz.raw.txt
