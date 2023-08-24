@@ -63,16 +63,19 @@ function cleanProject() {
 	brutePath="$defaultPath/brute"
 	
 
-	rm -rf  $workPath
-	rm -rf  $reconPath
-	rm -rf  $responsePath
-	rm -rf  $brutePath
-	rm -rf 	$defaultPath/host
-	rm -rf 	$defaultPath/nmap
-	rm -rf 	$defaultPath/dir
-	rm -rf 	$defaultPath/findings
-	rm -rf 	$defaultPath/github_dork
-	rm -rf 	$defaultPath/screenshots
+	sudo rm -rf  $workPath
+	sudo rm -rf  $reconPath
+	sudo rm -rf  $responsePath
+	sudo rm -rf  $brutePath
+	sudo rm -rf  $defaultPath/host
+	sudo rm -rf  $defaultPath/nmap
+	sudo rm -rf  $defaultPath/dir
+	sudo rm -rf  $defaultPath/findings
+	sudo rm -rf  $defaultPath/github_dork
+	sudo rm -rf  $defaultPath/screenshots
+	sudo rm -f $defaultPath/domains*
+	sudo rm -f $defaultPath/s2s.log
+	sudo rm -f $defaultPath/recon_*
 	
 	if [ "$#" -gt 1 ]; then
 		rm -rf $defaultPath/archive
@@ -176,13 +179,13 @@ function getRemoteReconResults() {
 		local return="$(ssh $ssh_base -t $ssh_command)"
 		echo "$return"
 		if [[ "$return" == *"$project FINISHED"* ]]; then
-			local date='$(printf "%(%d-%m-%Y_%H-%M-%S)T\n")'
-
+			local date=$(printf "%(%d-%m-%Y_%H-%M-%S)T\n")
+			mkdir -p /opt/s2s/$project/archive
 			echo "Getting $project ZIP file from remote host $SSH_S2S_SERVER"
 			#rm -rf $defaultPath
-			local return="$(scp $ssh_base:/opt/s2s/$project/$project.$date.zip /opt/s2s/$project/archive/$project.$date.zip)"
+			local return="$(scp $ssh_base:/opt/s2s/$project/$project.zip /opt/s2s/$project/archive/$project.$date.zip)"
 			cleanProject $project
-			unzip -o archive/$project.$date.zip -d /
+			unzip -o /opt/s2s/$project/archive/$project.$date.zip -d /
 
 			local ssh_command="rm /opt/s2s/$project/recon_started"
 			echo "SSH command $ssh_command"
