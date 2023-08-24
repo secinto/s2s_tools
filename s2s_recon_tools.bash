@@ -947,7 +947,7 @@ recon() {
 		echo "Cleaning results for project $project"
 		echo "==========================================================================="
 		rm -rf $reconPath
-		rn $defaultPath/domains.txt
+		rm -f $defaultPath/domains.txt
 		
 	fi
 	
@@ -960,15 +960,15 @@ recon() {
 		subf "$@"
 	fi
 	
-	dpux "$@"
+	dpux $project
 	echo "--- All IPs are resolved --- "
-	getIPInfoAndCleanDPUx "$@"
+	getIPInfoAndCleanDPUx $project
 	echo "--- Additional IP info obtained --- "
-	ports "$@" 1000
+	ports $project 1000
 	echo "--- All open ports for IPs are identified --- "
-	createServicesJSON "$@"
+	createServicesJSON $project
 	echo "--- Created services JSON --- "
-	generateHostMappings "$@"
+	generateHostMappings $project
 	echo "--- Create port hostname mappings --- "
 	http_from_all "$@"
 	echo "--- HTTP servers from domains are enumerated --- "
@@ -976,15 +976,15 @@ recon() {
 	echo "--- Cleaned the subdomains from duplicates --- "
 	dnsmx "$@"
 	echo "--- Identified dns mappings for cleaned domains --- "
-	do_clean "$@"
+	do_clean $project
 	echo "--- Performed recon for cleaned domains --- "
-	tls_check "$@"
+	tls_check $project
 	echo "--- Identified issues with TLS and certs --- "
-	getFindings "$@"
+	getFindings $project
 	echo "--- Get findings from obtained data --- "
-	web_tech_all "$@"
+	web_tech_all $project
 	echo "--- web technologies obtained from HTTP servers"
-	getWebserversWithProtocolIssues "$@" 
+	getWebserversWithProtocolIssues $project 
 	echo "--- Obtained web servers with protocol issues --- "
 
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -992,9 +992,9 @@ recon() {
 	echo "FINISHED $now" > $defaultPath/recon_finished
 	echo "--- RECON FINISHED $now --- "
 
-	fullNmapScan "$@"
+	fullNmapScan $project
 	echo "--- Performed a full Nmap scan over cleaned IPs --- "
-	createServicesJSON "$@" true
+	createServicesJSON $project true
 	echo "--- Created full services JSON --- "
 	cleanZeroFiles 
 	echo "--- Removed zero files --- "
