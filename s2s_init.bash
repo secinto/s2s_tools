@@ -47,6 +47,41 @@ function initProject() {
 }
 
 #============================================================================
+# Cleans the project directory from all generated data. If specified only the
+# archive directory is not deleted, otherwise all is deleted.
+#============================================================================
+function cleanProject() {
+	
+	local project=$1
+	
+	# Create the default path for reading and storing files associated with 
+	# a specific project. 
+	defaultPath="/opt/s2s/$project"
+	workPath="$defaultPath/work"
+	reconPath="$defaultPath/recon"
+	responsePath="$defaultPath/responses"
+	brutePath="$defaultPath/brute"
+	
+
+	rm -rf  $workPath
+	rm -rf  $reconPath
+	rm -rf  $responsePath
+	rm -rf  $brutePath
+	rm -rf 	$defaultPath/host
+	rm -rf 	$defaultPath/nmap
+	rm -rf 	$defaultPath/dir
+	rm -rf 	$defaultPath/findings
+	rm -rf 	$defaultPath/github_dork
+	rm -rf 	$defaultPath/screenshots
+	
+	if [ "$#" -gt 1 ]; then
+		rm -rf $defaultPath/archive
+	fi
+
+}
+
+
+#============================================================================
 # Initializes the project for broad scope evaluation. It can be used either
 # by providing the project name (FQDN) and an input file with all the domains
 # which should be included under this project such as
@@ -94,7 +129,6 @@ function doRemoteRecon() {
 		local ssh_command="rm -rf /opt/s2s/$project"
 		echo "SSH command $ssh_command"
 		local return="$(ssh $ssh_base -t $ssh_command)"
-
 			
 		if [ -f $defaultPath/multi_domains.txt ]; then
 			echo "Multi domain project"
@@ -142,10 +176,13 @@ function getRemoteReconResults() {
 		local return="$(ssh $ssh_base -t $ssh_command)"
 		echo "$return"
 		if [[ "$return" == *"$project FINISHED"* ]]; then
-			echo "Getting $project.zip file from remote host $SSH_S2S_SERVER"
+			local date='$(printf "%(%d-%m-%Y_%H-%M-%S)T\n")'
+
+			echo "Getting $project ZIP file from remote host $SSH_S2S_SERVER"
 			#rm -rf $defaultPath
-			local return="$(scp $ssh_base:/opt/s2s/$project/$project.zip /tmp/$project.zip)"
-			unzip -o /tmp/$project.zip -d /
+			local return="$(scp $ssh_base:/opt/s2s/$project/$project.$date.zip /opt/s2s/$project/archive/$project.$date.zip)"
+			cleanProject $project
+			unzip -o archive/$project.$date.zip -d /
 
 			local ssh_command="rm /opt/s2s/$project/recon_started"
 			echo "SSH command $ssh_command"
