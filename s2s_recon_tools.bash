@@ -966,8 +966,6 @@ recon() {
 	echo "--- Additional IP info obtained --- "
 	ports $project 1000
 	echo "--- All open ports for IPs are identified --- "
-	createServicesJSON $project
-	echo "--- Created services JSON --- "
 	generateHostMappings $project
 	echo "--- Create port hostname mappings --- "
 	http_from_all "$@"
@@ -986,6 +984,8 @@ recon() {
 	echo "--- web technologies obtained from HTTP servers"
 	getWebserversWithProtocolIssues $project 
 	echo "--- Obtained web servers with protocol issues --- "
+	createServicesJSON $project
+	echo "--- Created services JSON --- "
 
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 
