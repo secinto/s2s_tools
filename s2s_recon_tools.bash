@@ -525,10 +525,6 @@ http_from_all() {
 		return
 	fi
 	
-	rm -rf "$responsePath/domains"
-	rm -rf "$responsePath/ips"
-	rm $reconPath/http_servers_all.txt
-	rm $reconPath/https_servers_all.txt
 
 	http_from_domains "$@"
 	http_from_ips "$@"

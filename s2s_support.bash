@@ -121,8 +121,7 @@ function sendToELK() {
 }
 
 #============================================================================
-# Removes the duplicates from domain enumeration and creates a domains_clean 
-# file for further processing.
+# Generates host mappings using the output of NMAP and the resolved hostnames.
 #============================================================================
 function generateHostMappings() {
 	if ! initialize "$@"; then
@@ -131,7 +130,7 @@ function generateHostMappings() {
 	fi
 
 	echo "============================================================================"
-	echo "Removing duplicates for project $project"
+	echo "Generating host mappings for $project"
 	echo "============================================================================"
 	
 	nmapParser -p $project -a -hd
