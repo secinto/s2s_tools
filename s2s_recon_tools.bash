@@ -112,7 +112,6 @@ subf(){
 	
 	local outputTXT=$reconPath/$FUNCNAME.$project.output.txt
 	local outputJSON=$reconPath/$FUNCNAME.$project.output.json
-	local output=$defaultPath/domains.txt
 	
 	local run=false
 	
@@ -134,10 +133,6 @@ subf(){
 	fi
 	
 	echo "$project" | anew $outputTXT > /dev/null
-	
-	echo "============================================================================"
-	echo "Simple domain file $output has been created!"
-	echo "============================================================================"
 
 	dns_brute "$@"
 	echo "--- Subdomains for $project are resolved using brute force --- "
@@ -170,9 +165,13 @@ dpux() {
 
 	local input=$defaultPath/domains.txt
 	local output=$reconPath/dpux.txt
-	local outputSimple=$reconPath/dpux_host_to_ip.json
+	local outputHostToIP=$reconPath/dpux_host_to_ip.json
 	local outputDomains=$defaultPath/domains_dns.txt
 	local outputJSON=$reconPath/$FUNCNAME.$project.output.json
+	
+	local multi=$defaultPath/multi_domains.txt
+	local outputSimple=$reconPath/dpux_clean.json
+
 
 	if [ -s "$input" ]; then
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -190,76 +189,10 @@ dpux() {
 		if [ -s "$outputJSON" ]; then
 			rm $outputJSON
 		fi
-
-		cat $input | dnsx -a -txt -srv -ns -mx -soa -axfr -cname -aaaa -resp -json -o $outputJSON 
-		
 		
 		echo "============================================================================"
 		echo "Creating plain list of unique IPs for domain $project"
 		echo "============================================================================"
-		cat $outputJSON | jq .a | sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/null//g' | sed 's/,//g' | \
-			sed 's/localhost//g' | sed 's/\ //g' | sed 's/[[:blank:]]//g' | sed 's/[[:space:]]//g' | sed '/^$/d' | \
-			grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | sort -u | tee $output
-		
-		sendToELK $outputJSON dpux
-		
-		# TODO: IPv6 addresses need to be integrated as well
-		
-		cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputSimple > /dev/null
-		
-		sendToELK $outputSimple dpux
-
-		cat $outputJSON | jq .host | sed 's/\"//g' | tee $outputDomains > /dev/null
-		
-
-			
-		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
-		echo "==========================================================================="
-		echo "Workflow ${FUNCNAME[0]} finished"
-		echo "Current time: $now"
-		echo "==========================================================================="
-	fi
-
-}
-
-#============================================================================
-# Performs DNS resolution for MX and TXT records for checking mail security
-# topics. As input the TLD name for which the process should be performed is 
-# expected. 
-# As input the simple domain list generated subf run is expected. 
-# If it is not already present subf is called for the same domain. 
-# See subf for details on the input file.
-# 
-# Used tools:
-# source:https://github.com/projectdiscovery/dnsx
-# install:{GO111MODULE=on go get -v github.com/projectdiscovery/dnsx/cmd/dnsx}
-#============================================================================
-dnsmx() {
-	if ! initialize "$@"; then
-		echo "Exiting"
-		return
-	fi
-
-	local input=$defaultPath/domains_clean.txt
-	local multi=$defaultPath/multi_domains.txt
-	local inputAll=$defaultPath/domains.txt
-	local outputJSON=$reconPath/$FUNCNAME.$project.output.json
-	local outputSimple=$reconPath/dpux_clean.json
-	
-	if [ -s "$input" ]; then
-
-		if [ -s "$outputJSON" ]; then
-			rm $outputJSON
-		fi
-
-		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
-
-		echo "============================================================================"
-		echo "Performing resolution of MX and TXT records for cleaned domains from $project"
-		echo "Current time: $now"
-		echo "============================================================================"
-
-		
 		local inputTemp=$input-temp.txt
 		cat $input | anew $inputTemp > /dev/null
 		
@@ -275,17 +208,27 @@ dnsmx() {
 			echo "$project" | anew $inputTemp > /dev/null
 		fi
 		
-		cat $inputAll | grep _domainkey | anew $inputTemp > /dev/null
-
 		cat $inputTemp | dnsx -a -txt -mx -cname -aaaa -resp -json -o $outputJSON 
-		#cat $outputJSON | jq .a | sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/null//g' | sed 's/,//g' | sed 's/0.0.0.0//g' | \
-		#	sed 's/127.0.0.1//g' | sed 's/127::1//g' | sed 's/::1//g' | sed 's/127.000.000.001//g' | sed 's/localhost//g' | \
-		#	sed 's/\ //g' | sed 's/[[:blank:]]//g' | sed 's/[[:space:]]//g' | sed '/^$/d' | sort -u | tee $output
-	
+		
 		rm $inputTemp
 	
 		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputSimple > /dev/null
+		
+		cat $outputJSON | jq .a | sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/null//g' | sed 's/,//g' | \
+			sed 's/localhost//g' | sed 's/\ //g' | sed 's/[[:blank:]]//g' | sed 's/[[:space:]]//g' | sed '/^$/d' | \
+			grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | sort -u | tee $output
+		
+		sendToELK $outputJSON dpux
+		
+		# TODO: IPv6 addresses need to be integrated as well
+		
+		cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputHostToIP > /dev/null
+		
+		sendToELK $outputHostToIP dpux
 
+		cat $outputJSON | jq .host | sed 's/\"//g' | tee $outputDomains > /dev/null
+
+			
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 		echo "==========================================================================="
 		echo "Workflow ${FUNCNAME[0]} finished"
@@ -409,13 +352,13 @@ http_from() {
 		
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
-			httpx -l $input -hash "mmh3" -random-agent -vhost -nf -location -ss -esb -ehb -cl -ct -td -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -srd $outputDir/$type
+			httpx -l $input -hash "mmh3" -random-agent -vhost -ss -esb -ehb -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -srd $outputDir/$type
 			sendToELK $output httpx
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			httpx -l $input -silent -hash "mmh3" -json -ip -nf -o $output -fr -maxr 10 -srd $outputDir/$type 
+			httpx -l $input -silent -hash "mmh3" -json -ip -o $output -fr -fhr -srd $outputDir/$type 
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
@@ -855,7 +798,7 @@ do_clean() {
 
 		# Create list of cleaned HTTPs servers without IPs.
 		local outputDomainURLs=$reconPath/https_servers_clean_domains.txt
-		cat	$reconPath/http_from.clean.domains.output.json | jq .url | grep https | sed 's/\"//g' | sed 's/:443//g' | tee $outputDomainURLs > /dev/null
+		cat	$reconPath/http_from.clean.domains.output.json | jq .url | grep https | sed 's/\"//g' | sed 's/:443//g' | anew $outputDomainURLs > /dev/null
 		
 		# Create combined list of cleaned HTTP resolution
 		cat $reconPath/http_from.clean.ips.output.json | anew $reconPath/http_from.clean.output.json > /dev/null
@@ -864,8 +807,8 @@ do_clean() {
 		# Create list of cleaned HTTP/HTTPs servers including IPs
 		local outputURLs=$reconPath/http_servers_clean.txt
 		local outputHttpsURLs=$reconPath/https_servers_clean.txt
-		cat	$reconPath/http_from.clean.output.json | jq .url | sed 's/\"//g' | tee $outputURLs > /dev/null
-		cat	$outputURLs | grep https | tee $outputHttpsURLs > /dev/null
+		cat	$reconPath/http_from.clean.output.json | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
+		cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
 
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -968,8 +911,8 @@ recon() {
 	echo "--- HTTP servers from domains are enumerated --- "
 	removeDuplicate "$@"
 	echo "--- Cleaned the subdomains from duplicates --- "
-	dnsmx "$@"
-	echo "--- Identified dns mappings for cleaned domains --- "
+	#dnsmx "$@"
+	#echo "--- Identified dns mappings for cleaned domains --- "
 	do_clean $project
 	echo "--- Performed recon for cleaned domains --- "
 	tls_check $project
@@ -982,7 +925,8 @@ recon() {
 	echo "--- Obtained web servers with protocol issues --- "
 	createServicesJSON $project
 	echo "--- Created services JSON --- "
-
+	getUptime $project
+	echo "--- Obtained uptime of services --- "
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 
 	echo "FINISHED $now" > $defaultPath/recon_finished

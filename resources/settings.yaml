@@ -2,7 +2,7 @@
 #Project configuration
 s2s_path: "/opt/s2s/"
 #Files
-host_mapping: "dpux_host_to_ip.json"
+host_mapping: "dpux_host_to_ip.xml"
 httpx_domains: "http_from.domains.output.json"
 httpx_ips: "http_from.ips.output.json"
 httpx_clean: "http_from.clean.output.json"
@@ -10,6 +10,5 @@ dpux: "dpux.{project_name}.output.json"
 dpux_clean: "dpux_clean.json"
 dpux_xml: "dpux_clean.xml"
 dpux_ip: "dpux.txt"
-dnsmx: "dnsmx.{project_name}.output.json"
 ports_xml: "ports.{project_name}.output.xml"
 ports_simple: "unique_open_ports.json"

@@ -390,6 +390,76 @@ function fullNmapScan() {
 }
 
 #============================================================================
+# Performs a hping3 scan to get the uptime if possible from the host.
+# 
+# Basic command:
+#	getUptime project
+#
+# Examples:
+#	getUpTime secinto.com
+#============================================================================
+function getUptime() {
+	if ! initialize "$@"; then
+		echo "Exiting"
+		return
+	fi
+
+	local script="/opt/tools/nmapXMLParser/nmapXMLParser.py"
+	local input=$defaultPath/nmap/dpux_clean.xml
+
+	if [ $# -eq 2 ]; then
+		local input=$2
+		echo "==========================================================================="
+		echo "Using non-default input $input"
+		echo "==========================================================================="
+	fi
+	
+
+	if [ -s "$input" ]; then
+
+		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
+		echo "==========================================================================="
+		echo "Workflow ${FUNCNAME[0]} for identifying services on open ports started"
+		echo "Current time: $now"
+		echo "==========================================================================="
+
+		mkdir -p $defaultPath/host
+		
+		local output=$defaultPath/findings/uptime.txt
+		local temp=$defaultPath/work/uptime.txt
+
+		if [ -f $output ]; then
+			rm $output
+		fi
+
+		local ips="$(python3 $script -ip -f $input)"
+		while read -r line
+		do
+			local open_tcp_ports="$(getOpenPortsForHost $line tcp $input)"
+			
+			if [ ! -z "$open_tcp_ports" ]; then
+				local port="$(echo $open_tcp_ports | awk -F',' '{print $1}')"  
+				echo "Getting uptime from $line on port $port"
+				sudo hping3 -p $port -S --tcp-timestamp -c 2 $line >$temp 2>&1
+				local outputText="$(cat $temp | grep "System uptime")"
+				if [ ! -z "$outputText" ]; then
+					echo $outputText | awk -v ipAddress=$line -v portInfo=$port '{print "{\"ip\": \"" ipAddress "\", \"port\": \"" portInfo "\", \"days\": \"" $4 "\", \"hours\": \"" $6 "\"}"}' >>$output
+				fi
+			fi
+		done <<< "$ips"
+
+		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
+		echo "==========================================================================="
+		echo "Workflow ${FUNCNAME[0]} finished"
+		echo "Current time: $now"
+		echo "==========================================================================="
+
+	fi
+}
+
+
+
+#============================================================================
 # Performs a NMAP scan over the hosts and ports already identified to be 
 # open and listening. It uses the DPUX list of hosts and ports for input as 
 # created during full_recon "nmap_ip_full $project $reconPath/dpux_clean.txt".
