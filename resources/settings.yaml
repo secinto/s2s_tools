@@ -4,7 +4,7 @@ s2s_path: "S://"
 #Files
 dpux: "dpux.{project_name}.output.json"
 dpux_xml: "dpux.xml"
-dpux_ip: "dpux.txt"
+dpux_ip: "dpux_clean.txt"
 host_mapping: "dpux_host_to_ip.json"
 httpx_domains: "http_from.domains.output.json"
 httpx_ips: "http_from.ips.output.json"

@@ -164,6 +164,7 @@ dpux() {
 	fi
 
 	local input=$defaultPath/domains.txt
+	local inputTmp=$input-tmp.txt
 	local output=$reconPath/dpux.txt
 	local outputJSON=$reconPath/$FUNCNAME.$project.output.json
 	local multi=$defaultPath/multi_domains.txt
@@ -191,23 +192,28 @@ dpux() {
 		
 		# Adding TLD domain if not present and dmarc domains for mail settings discovery
 		# Unusual domains such as _domainkey, _dmarc and so on will be filtered later on
+		if [ -f $inputTmp ]; then
+			rm $inputTmp
+		fi
+		
+		cat $input | anew $inputTmp
+
 		if [ -s "$multi" ]; then
 			for line in $(<$multi); 
 			do 
-				echo "$line" | anew $input > /dev/null
-				echo "s1._domainkey.$line" | anew $input > /dev/null
-				echo "k1._domainkey.$line" | anew $input > /dev/null
+				echo "$line" | anew $inputTmp > /dev/null
+				echo "s1._domainkey.$line" | anew $inputTmp > /dev/null
 				echo "_dmarc.$line" | anew $input > /dev/null
 			done
 		else
-			echo "s1._domainkey.$project" | anew $input > /dev/null
-			echo "k1._domainkey.$project" | anew $input > /dev/null
-			echo "_dmarc.$project" | anew $input > /dev/null
-			echo "$project" | anew $input > /dev/null
+			echo "s1._domainkey.$project" | anew $inputTmp > /dev/null
+			echo "_dmarc.$project" | anew $inputTmp > /dev/null
+			echo "$project" | anew $inputTmp > /dev/null
 		fi
 		
+		
 		# Performing DNS resolution and response generation
-		cat $input | dnsx -a -txt -mx -cname -aaaa -resp -soa -json -o $outputJSON 
+		cat $inputTmp | dnsx -a -txt -mx -cname -aaaa -resp -soa -json -o $outputJSON 
 	
 		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | \
 			sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/null//g' | sed 's/,//g' | \
