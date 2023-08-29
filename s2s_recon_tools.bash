@@ -165,13 +165,9 @@ dpux() {
 
 	local input=$defaultPath/domains.txt
 	local output=$reconPath/dpux.txt
-	local outputHostToIP=$reconPath/dpux_host_to_ip.json
-	local outputDomains=$defaultPath/domains_dns.txt
 	local outputJSON=$reconPath/$FUNCNAME.$project.output.json
-	
 	local multi=$defaultPath/multi_domains.txt
-	local outputSimple=$reconPath/dpux_clean.json
-
+	local outputSimple=$reconPath/dpux_host_to_ip.json
 
 	if [ -s "$input" ]; then
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -181,53 +177,78 @@ dpux() {
 		echo "Current time: $now"
 		echo "============================================================================"
 
-
-
-		# Creating the domain:ip output together with the response from the DNS resolving. Host names can
-		# exist multiple times in the output. For each IP combination a unique entry is created.
-		#cat $input | dnsx -silent -a -resp | sort -u | sed 's/\[//g' | sed 's/\]//g' | sed 's/\ /\,/g' | sed '/127.0.0.1/d' | tee $outputCSV
-		if [ -s "$outputJSON" ]; then
+		#if [ -f "$removedIPs" ]; then
+		#	rm $removedIPs
+		#fi
+	
+		if [ -f "$outputJSON" ]; then
 			rm $outputJSON
 		fi
 		
 		echo "============================================================================"
 		echo "Creating plain list of unique IPs for domain $project"
 		echo "============================================================================"
-		local inputTemp=$input-temp.txt
-		cat $input | anew $inputTemp > /dev/null
 		
-		
+		# Adding TLD domain if not present and dmarc domains for mail settings discovery
+		# Unusual domains such as _domainkey, _dmarc and so on will be filtered later on
 		if [ -s "$multi" ]; then
 			for line in $(<$multi); 
 			do 
-				echo "$line" | anew $inputTemp > /dev/null
-				echo "_dmarc.$line" | anew $inputTemp > /dev/null
+				echo "$line" | anew $input > /dev/null
+				echo "s1._domainkey.$line" | anew $input > /dev/null
+				echo "k1._domainkey.$line" | anew $input > /dev/null
+				echo "_dmarc.$line" | anew $input > /dev/null
 			done
 		else
-			echo "_dmarc.$project" | anew $inputTemp > /dev/null
-			echo "$project" | anew $inputTemp > /dev/null
+			echo "s1._domainkey.$project" | anew $input > /dev/null
+			echo "k1._domainkey.$project" | anew $input > /dev/null
+			echo "_dmarc.$project" | anew $input > /dev/null
+			echo "$project" | anew $input > /dev/null
 		fi
 		
-		cat $inputTemp | dnsx -a -txt -mx -cname -aaaa -resp -json -o $outputJSON 
-		
-		rm $inputTemp
+		# Performing DNS resolution and response generation
+		cat $input | dnsx -a -txt -mx -cname -aaaa -resp -soa -json -o $outputJSON 
 	
-		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputSimple > /dev/null
-		
+		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | \
+			sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/null//g' | sed 's/,//g' | \
+			sed 's/localhost//g' | sed 's/\ //g' | sed 's/[[:blank:]]//g' | sed 's/[[:space:]]//g' | sed '/^$/d' | \
+			grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | tee $outputSimple > /dev/null
+		#cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputHostToIP > /dev/null
+		#cat $outputJSON | jq .host | sed 's/\"//g' | tee $outputDomains > /dev/null
+		# Create dpux.txt without any domains which resolve to localhost or internal networks. 
 		cat $outputJSON | jq .a | sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/null//g' | sed 's/,//g' | \
 			sed 's/localhost//g' | sed 's/\ //g' | sed 's/[[:blank:]]//g' | sed 's/[[:space:]]//g' | sed '/^$/d' | \
-			grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | sort -u | tee $output
+			grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | sort -u | tee $output > /dev/null
 		
 		sendToELK $outputJSON dpux
+		sendToELK $outputSimple dpux
 		
-		# TODO: IPv6 addresses need to be integrated as well
-		
-		cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputHostToIP > /dev/null
-		
-		sendToELK $outputHostToIP dpux
+		# Removing IP addresses which belong to typical external services, currently only Microsoft365
+		#cat $outputSimple | grep autodiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
+		#cat $outputSimple | grep lyncdiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
+		#cat $outputSimple | grep sip. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
+		#cat $outputSimple | grep enterpriseenrollment. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
+		#cat $outputSimple | grep enterpriseregistration. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
 
-		cat $outputJSON | jq .host | sed 's/\"//g' | tee $outputDomains > /dev/null
+		#local ipsToRemove="$(cat $removedIPs)"
+		
+		#echo "============================================================================"
+		#echo "IP addresses which will be removed from dpux.txt"
+		#echo "============================================================================"	
+		#echo "$ipsToRemove"
+		#echo "============================================================================"
+		#cat $output | tee $cleanedOutput > /dev/null
+		#if [ ! -z "$ipsToRemove" ]; then
+		
+		#	while read -r line
+		#	do
+		#		sed -i "/$line/d" "$cleanedOutput"
+		#	done <<< "$ipsToRemove"
+		#else
+		#	echo "No IP addresses are set to be removed"
+		#fi
 
+		filterIPs
 			
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 		echo "==========================================================================="
@@ -251,10 +272,12 @@ ports() {
 	fi
 	
 	local input=$reconPath/dpux_clean.txt
-	local outputJSON=$reconPath/unique_open_ports.json
 	local output=$reconPath/$FUNCNAME.$project.output.xml
+	local outputJSON=$reconPath/unique_open_ports.json
 	local outputTXT=$reconPath/unique_ip_ports.txt
+
 	local script=/opt/tools/nmapXMLParser/nmapXMLParser.py
+
 	local ports="-F"
 	
 	if [ "$#" -gt 1 ]; then
@@ -280,19 +303,10 @@ ports() {
 	echo "Current time: $now"
 	echo "============================================================================"
 	
-	if [ -s "$input" ]; then
-		echo "Required input $input already exists!"
-	else
-		echo "Required input $input doesn't exist!"
-		dpux "$@"
-	fi
-	
 	if [ -z $target ]; then
 		sudo nmap -Pn $ports -vv -T3 -iL $input -oX $output --host-timeout 900
-		#sudo chown samareina:researchers $output
 	else
 		sudo nmap -Pn $ports -vv -oX $output --host-timeout 600 $target
-		#sudo chown samareina:researchers $output
 	fi
 	
 	python3 $script -f $output -json $outputJSON
@@ -399,7 +413,10 @@ http_from_domains() {
 	fi
 	
 	if [ -s "$input" ]; then
-		echo "Required input $input already exists!"
+		echo "==========================================================================="
+		echo "Using $input"
+		echo "to perform ${FUNCNAME[0]} on $1"
+		echo "==========================================================================="
 		
 		http_from $1 $input "domains"
 		
@@ -408,6 +425,11 @@ http_from_domains() {
 		echo "==========================================================================="
 		echo "Worflow ${FUNCNAME[0]} finished"
 		echo "Current time: $now"
+		echo "==========================================================================="
+	else 
+		echo "==========================================================================="
+		echo "Required input $input"
+		echo "not found - not performing ${FUNCNAME[0]}"
 		echo "==========================================================================="
 	fi
 	
@@ -590,17 +612,9 @@ dns_brute() {
 	
 	# Resolving DNS entries found by subfinder. If resolved they are added to domains.
 	if [ -s "$inputTXT" ]; then
-		echo "Adding $dns to $inputTXT"
-		echo "$dns" | anew $inputTXT
-		local dnsEntries="$(cat $inputTXT | wc -l)"
-		echo "Found $dnsEntries in $inputTXT"
-		if [[ "$dnsEntries" -ge 50 ]]; then
-			puredns resolve $inputTXT -q -r $resolvers | tee $outputTXT > /dev/null
-		else
-			echo "Not resolving entries from subfinder, less than 50"
-			cat $inputTXT | anew $outputTXT > /dev/null
-		fi
-		
+		echo "$dns" | anew $inputTXT >/dev/null
+		puredns resolve $inputTXT -q -r $resolvers | tee $outputTXT > /dev/null
+
 		dns_enum "$@" 
 		dns_fuzz "$@" 
 
@@ -901,9 +915,11 @@ recon() {
 	
 	dpux $project
 	echo "--- All IPs are resolved --- "
-	getIPInfoAndCleanDPUx $project
+	getIPInfo $project
 	echo "--- Additional IP info obtained --- "
-	ports $project 1000
+	cleanIPs $project
+	echo "--- Removed --- "
+	ports $project
 	echo "--- All open ports for IPs are identified --- "
 	generateHostMappings $project
 	echo "--- Create port hostname mappings --- "
@@ -928,18 +944,9 @@ recon() {
 	getUptime $project
 	echo "--- Obtained uptime of services --- "
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
-
+	cleanZeroFiles 
 	echo "FINISHED $now" > $defaultPath/recon_finished
 	echo "--- RECON FINISHED $now --- "
-
-	fullNmapScan $project
-	echo "--- Performed a full Nmap scan over cleaned IPs --- "
-	createServicesJSON $project true
-	echo "--- Created full services JSON --- "
-	cleanZeroFiles 
-	echo "--- Removed zero files --- "
-
-
 
 	echo "==========================================================================="
 	echo "Worflow ${FUNCNAME[0]} finished"

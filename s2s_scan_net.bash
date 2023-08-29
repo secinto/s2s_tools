@@ -351,7 +351,7 @@ function vhost_enum() {
 
 #============================================================================
 # Performs a full Nmap scan over all identified IPs (DPUX). The function 
-# nmap_ip_full is on the list of IPs from dpux.txt.
+# nmap_ip_full is on the list of IPs from dpux_clean.txt.
 #============================================================================
 function fullNmapScan() {
 
@@ -405,7 +405,7 @@ function getUptime() {
 	fi
 
 	local script="/opt/tools/nmapXMLParser/nmapXMLParser.py"
-	local input=$defaultPath/nmap/dpux_clean.xml
+	local input=$reconPath/ports.$project.output.xml
 
 	if [ $# -eq 2 ]; then
 		local input=$2
@@ -462,7 +462,7 @@ function getUptime() {
 #============================================================================
 # Performs a NMAP scan over the hosts and ports already identified to be 
 # open and listening. It uses the DPUX list of hosts and ports for input as 
-# created during full_recon "nmap_ip_full $project $reconPath/dpux_clean.txt".
+# created during recon.
 # Each host in the list is scanned with only the open ports performing 
 # service, OS discovery, applying default and vuln scripts and performing
 # traceroute.

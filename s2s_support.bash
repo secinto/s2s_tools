@@ -211,9 +211,9 @@ function sendAllToELK {
 
 		initialize "$folder"
 
-		#sendToELK $reconPath/http_from.$project.output.json httpx
-		#sendToELK $reconPath/dpux.$project.output.json dpux
-		#sendToELK $reconPath/subf.$project.output.json subf
+		sendToELK $reconPath/http_from.$project.output.json httpx
+		sendToELK $reconPath/dpux.$project.output.json dpux
+		sendToELK $reconPath/subf.$project.output.json subf
 		sendToELK $reconPath/ports.$project.output.json ports
 		lineCounter=$((lineCounter+1))
 	done
@@ -687,7 +687,7 @@ function getIPListFromAllXML() {
 #============================================================================
 function getOpenPortsForHost() {
 	local script=/opt/tools/nmapXMLParser/nmapXMLParser.py
-	local input=$defaultPath/nmap/dpux_clean.xml
+	local input=$reconPath/ports.$project.output.xml
 	local host=$1
 	local type=$2
 	

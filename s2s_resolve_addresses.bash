@@ -57,17 +57,10 @@ function findIPAddressesForHosts() {
 # Obtains additional information to each identified IP address using IPinfo
 
 #============================================================================
-function getIPInfoAndCleanDPUx() {
+function getIPInfo() {
 	initialize "$@"
 	local input=$reconPath/dpux.txt
 	local result=$reconPath/dpux_ipinfo.json
-	local hostIP=$reconPath/dpux_host_to_ip.json
-	local removedIPs=$reconPath/dpux_removed_ips.txt
-	local cleanedInput=$reconPath/dpux_clean.txt
-	
-	if [ -f "$removedIPs" ]; then
-		rm $removedIPs
-	fi
 		
 	if [ -s "$input" ]; then
 
@@ -77,13 +70,6 @@ function getIPInfoAndCleanDPUx() {
 		echo "Obtaining additional IP address information for $project"
 		echo "Current time: $now"
 		echo "============================================================================"	
-		
-		if [ -s "$input" ]; then
-			echo "Required input $input already exists!"
-		else
-			echo "Required input $input doesn't exist!"
-			dpux "$@"
-		fi
 		
 		if [ -n "${S2S_IPINFO_TOKEN+set}" ]; then
 			if [ $# -lt 2 ]; then
@@ -103,31 +89,6 @@ function getIPInfoAndCleanDPUx() {
 
 				echo "$json" | jq '.' | tee $result
 			fi
-			
-			#local ipsToRemove="$(cat $result | jq -r 'select(.org != null) | select(.org | contains("Microsoft")) | .ip')"
-			cat $hostIP | grep autodiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs
-			cat $hostIP | grep lyncdiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs
-			cat $hostIP | grep sip. | jq .ip | sed 's/\"//g' | anew $removedIPs
-			cat $hostIP | grep enterpriseenrollment. | jq .ip | sed 's/\"//g' | anew $removedIPs
-			cat $hostIP | grep enterpriseregistration. | jq .ip | sed 's/\"//g' | anew $removedIPs
-
-			local ipsToRemove="$(cat $removedIPs)"
-			
-			echo "============================================================================"
-			echo "IP addresses which will be removed from dpux.txt"
-			echo "============================================================================"	
-			echo "$ipsToRemove"
-			echo "============================================================================"
-			cat $input | tee $cleanedInput > /dev/null
-			if [ ! -z "$ipsToRemove" ]; then
-			
-				while read -r line
-				do
-					sed -i "/$line/d" "$cleanedInput"
-				done <<< "$ipsToRemove"
-			else
-				echo "No IP addresses are set to be removed"
-			fi
 		else
 			echo "S2S_IPINFO_TOKEN environment variable not set"
 		fi
@@ -142,4 +103,21 @@ function getIPInfoAndCleanDPUx() {
 	echo "Workflow ${FUNCNAME[0]} finished"
 	echo "Current time: $now"
 	echo "==========================================================================="	
+}
+
+function filterIPs() {
+
+	local input=$reconPath/dpux.txt
+	local output=$reconPath/dpux_clean.txt
+
+	local ipsToRemove="$(mapcidr -silent -cl /opt/tools/s2s_tools/resources/microsoft_ips.txt -mi $input)"
+	cat $input | tee $output > /dev/null
+	if [ ! -z "$ipsToRemove" ]; then
+		while read -r line
+		do
+			sed -i "/$line/d" "$output"
+		done <<< "$ipsToRemove"
+	else
+		echo "No IP addresses are set to be removed"
+	fi
 }
