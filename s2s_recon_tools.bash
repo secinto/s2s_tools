@@ -377,7 +377,7 @@ http_from() {
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			httpx -l $input -silent -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type 
+			httpx -l $input -silent -rl 8 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type 
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
