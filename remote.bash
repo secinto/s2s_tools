@@ -38,6 +38,7 @@ function performRecon() {
 		return
 	fi
 	
+	service openvpn restart
 
 	local started=$defaultPath/recon_started
 	

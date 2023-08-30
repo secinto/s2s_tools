@@ -43,7 +43,7 @@ subf_multi() {
 			fi
 			echo "$line" | anew $outputTXT > /dev/null
 			
-			dns_brute "$line" "multi"
+			#dns_brute "$line" "multi"
 			echo "--- Subdomains for $line are resolved using brute force --- "
 			
 		done
@@ -215,10 +215,9 @@ dpux() {
 		# Performing DNS resolution and response generation
 		cat $inputTmp | dnsx -a -txt -mx -cname -aaaa -resp -soa -json -o $outputJSON 
 	
-		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | \
-			sed 's/\[//g' | sed 's/\]//g' | sed 's/\"//g' | sed 's/null//g' | sed 's/,//g' | \
-			sed 's/localhost//g' | sed 's/\ //g' | sed 's/[[:blank:]]//g' | sed 's/[[:space:]]//g' | sed '/^$/d' | \
-			grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | tee $outputSimple > /dev/null
+		rm $inputTmp
+
+		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputSimple > /dev/null
 		#cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputHostToIP > /dev/null
 		#cat $outputJSON | jq .host | sed 's/\"//g' | tee $outputDomains > /dev/null
 		# Create dpux.txt without any domains which resolve to localhost or internal networks. 
@@ -372,13 +371,13 @@ http_from() {
 		
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
-			httpx -l $input -hash "mmh3" -random-agent -vhost -ss -esb -ehb -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -srd $outputDir/$type
+			httpx -l $input -hash "mmh3" -random-agent -vhost -ss -esb -ehb -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type
 			sendToELK $output httpx
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			httpx -l $input -silent -hash "mmh3" -json -ip -o $output -fr -fhr -srd $outputDir/$type 
+			httpx -l $input -silent -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type 
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
@@ -923,8 +922,6 @@ recon() {
 	echo "--- All IPs are resolved --- "
 	getIPInfo $project
 	echo "--- Additional IP info obtained --- "
-	cleanIPs $project
-	echo "--- Removed --- "
 	ports $project
 	echo "--- All open ports for IPs are identified --- "
 	generateHostMappings $project
@@ -937,18 +934,22 @@ recon() {
 	#echo "--- Identified dns mappings for cleaned domains --- "
 	do_clean $project
 	echo "--- Performed recon for cleaned domains --- "
-	tls_check $project
-	echo "--- Identified issues with TLS and certs --- "
 	getFindings $project
 	echo "--- Get findings from obtained data --- "
-	web_tech_all $project
-	echo "--- web technologies obtained from HTTP servers"
-	getWebserversWithProtocolIssues $project 
-	echo "--- Obtained web servers with protocol issues --- "
+	tls_check $project
+	echo "--- Identified issues with TLS and certs --- "
+	#web_tech_all $project
+	#echo "--- web technologies obtained from HTTP servers"
+	#getWebserversWithProtocolIssues $project 
+	#echo "--- Obtained web servers with protocol issues --- "
 	createServicesJSON $project
 	echo "--- Created services JSON --- "
 	getUptime $project
 	echo "--- Obtained uptime of services --- "
+	analyzeResponses -p $project
+	echo "--- Analyzed responses from HTTP requests --- "	
+	tls_check $project
+	echo "--- Identified issues with TLS and certs --- "
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 	cleanZeroFiles 
 	echo "FINISHED $now" > $defaultPath/recon_finished
