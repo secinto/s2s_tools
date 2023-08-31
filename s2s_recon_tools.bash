@@ -43,7 +43,7 @@ subf_multi() {
 			fi
 			echo "$line" | anew $outputTXT > /dev/null
 			
-			#dns_brute "$line" "multi"
+			dns_brute "$line" "multi"
 			echo "--- Subdomains for $line are resolved using brute force --- "
 			
 		done
@@ -371,7 +371,7 @@ http_from() {
 		
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
-			httpx -l $input -hash "mmh3" -random-agent -vhost -ss -esb -ehb -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -ports http:80,http:443,https:443 -rhsts
+			httpx -l $input -hash "mmh3" -random-agent -vhost -ss -esb -ehb -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts
 			sendToELK $output httpx
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
