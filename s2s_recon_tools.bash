@@ -196,7 +196,7 @@ dpux() {
 			rm $inputTmp
 		fi
 		
-		cat $input | anew $inputTmp
+		cat $input | anew $inputTmp > /dev/null
 
 		if [ -s "$multi" ]; then
 			for line in $(<$multi); 
@@ -227,31 +227,6 @@ dpux() {
 		
 		sendToELK $outputJSON dpux
 		sendToELK $outputSimple dpux
-		
-		# Removing IP addresses which belong to typical external services, currently only Microsoft365
-		#cat $outputSimple | grep autodiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
-		#cat $outputSimple | grep lyncdiscover. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
-		#cat $outputSimple | grep sip. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
-		#cat $outputSimple | grep enterpriseenrollment. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
-		#cat $outputSimple | grep enterpriseregistration. | jq .ip | sed 's/\"//g' | anew $removedIPs > /dev/null
-
-		#local ipsToRemove="$(cat $removedIPs)"
-		
-		#echo "============================================================================"
-		#echo "IP addresses which will be removed from dpux.txt"
-		#echo "============================================================================"	
-		#echo "$ipsToRemove"
-		#echo "============================================================================"
-		#cat $output | tee $cleanedOutput > /dev/null
-		#if [ ! -z "$ipsToRemove" ]; then
-		
-		#	while read -r line
-		#	do
-		#		sed -i "/$line/d" "$cleanedOutput"
-		#	done <<< "$ipsToRemove"
-		#else
-		#	echo "No IP addresses are set to be removed"
-		#fi
 
 		filterIPs
 			
@@ -371,7 +346,7 @@ http_from() {
 		
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
-			httpx -l $input -hash "mmh3" -random-agent -vhost -ss -esb -ehb -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts
+			httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts
 			sendToELK $output httpx
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
@@ -739,11 +714,6 @@ dns_fuzz() {
 	
 	if [ ! -s "$inputTXT" ]; then
 		local run=false
-	#else
-	#	local dnsEntries="$(cat $inputTXT | wc -l)"
-	#	if [ $dnsEntries -lt 3 ]; then
-	#		local run=false
-	#	fi
 	fi
 
 	if $run; then
