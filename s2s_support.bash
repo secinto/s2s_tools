@@ -147,7 +147,7 @@ function removeDuplicate() {
 	fi
 
 	echo "============================================================================"
-	echo "Removing duplicates for project $project"
+	echo "Clean duplicates and find security settings for $project"
 	echo "============================================================================"
 	
 	cleanAndFind -p $project
@@ -156,6 +156,8 @@ function removeDuplicate() {
 #============================================================================
 # Analyzes the HTTPx JSON output to identify possible interesting hosts and
 # issues within them.
+# Analyzes the stored responses, including request and the whole chain, 
+# obtained by HTTPx. The output is written to the findings folder. 
 #============================================================================
 function getFindings() {
 	if ! initialize "$@"; then
@@ -168,24 +170,12 @@ function getFindings() {
 	echo "============================================================================"
 	
 	simpleFinder -p $project 
-}
-
-#============================================================================
-# Analyzes the stored responses, including request and the whole chain, 
-# obtained by HTTPx. The output is written to the findings folder. 
-#============================================================================
-function analyzeResponses() {
-	if ! initialize "$@"; then
-		echo "Exiting"
-		return
-	fi
-
+	
 	echo "============================================================================"
-	echo "Get findings for $project"
+	echo "Analyze responses for $project"
 	echo "============================================================================"
 	
-	analyzeResponses -p $project 
-}
+	analyzeResponses -p $project }
 
 #============================================================================
 # Changes the ownership of all created files to user:researchers in order
