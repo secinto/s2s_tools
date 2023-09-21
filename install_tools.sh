@@ -106,17 +106,21 @@ function installGOTools() {
 	go install -v github.com/tomnomnom/hacks/unfurl@latest
 	go install -v github.com/ffuf/ffuf@latest
 	go install -v github.com/projectdiscovery/alterx/cmd/alterx@latest
-	go install -v github.com/secinto/elasticPusher/cmd/elasticPusher@latest
-	go install -v github.com/secinto/simpleFinder/cmd/simpleFinder@latest
-	go install -v github.com/secinto/duplicateRemover/cmd/duplicateRemover@latest
-	go install -v github.com/secinto/nmapParser/cmd/nmapParser@latest
 	go install -v github.com/d3mondev/puredns/v2@latest
 	go install -v github.com/rverton/webanalyze/cmd/webanalyze@latest
 	
+	go install -v github.com/secinto/elasticPusher/cmd/elasticPusher@latest
+	go install -v github.com/secinto/nmapParser/cmd/nmapParser@latest
+	go install -v github.com/secinto/cleanAndFind/cmd/cleanAndFind@latest
+	go install -v github.com/secinto/analyzeResponses/cmd/analyzeResponses@latest
+	go install -v github.com/secinto/simpleFinder/cmd/simpleFinder@latest
+	
 	mkdir -p ~/.config/nmapParser
 	mkdir -p ~/.config/simpleFinder
-	mkdir -p ~/.config/duplicateRemover
-	cp $s2s_tools/resources/settings.yaml ~/.config/duplicateRemover/.
+	mkdir -p ~/.config/cleanAndFind
+	mkdir -p ~/.config/analyzeResponses
+	cp $s2s_tools/resources/settings.yaml ~/.config/analyzeResponses/.
+	cp $s2s_tools/resources/settings.yaml ~/.config/cleanAndFind/.
 	cp $s2s_tools/resources/settings.yaml ~/.config/simpleFinder/.
 	cp $s2s_tools/resources/settings.yaml ~/.config/nmapParser/.
 	

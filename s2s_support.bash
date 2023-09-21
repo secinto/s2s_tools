@@ -168,7 +168,7 @@ function getFindings() {
 	echo "Get findings for $project"
 	echo "============================================================================"
 	
-	simpleFinder -p $project -all
+	simpleFinder -p $project 
 }
 
 #============================================================================

@@ -346,13 +346,13 @@ http_from() {
 		
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
-			httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts
+			httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 			sendToELK $output httpx
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			httpx -l $input -silent -rl 8 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts
+			httpx -l $input -silent -rl 8 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
@@ -760,7 +760,7 @@ do_clean() {
 	fi
 	
 	local domains=$defaultPath/domains_clean_with_http_ports.txt
-	local ips=$reconPath/dpux_clean.txt
+	#local ips=$reconPath/dpux_clean.txt
 
 	if [ -s "$domains" ]; then
 	
@@ -773,8 +773,6 @@ do_clean() {
 		
 		rm -rf "$responsePath/clean"
 
-		#rm $reconPath/http_from.clean.domains.output.json
-		#rm $reconPath/http_from.clean.ips.output.json
 		if [ -f "$reconPath/http_from.clean.output.json" ]; then
 			rm $reconPath/http_from.clean.output.json
 		fi
@@ -787,17 +785,18 @@ do_clean() {
 
 		# Create list of cleaned HTTPs servers without IPs.
 		local outputDomainURLs=$reconPath/https_servers_clean_domains.txt
-		cat	$reconPath/http_from.clean.domains.output.json | jq .url | grep https | sed 's/\"//g' | sed 's/:443//g' | anew $outputDomainURLs > /dev/null
+		cat	$reconPath/http_from.clean.domains.output.json | jq .url | grep https | sed 's/\"//g' | sed 's/:443//g' | tee $outputDomainURLs > /dev/null
 		
 		# Create combined list of cleaned HTTP resolution
-		cat $reconPath/http_from.clean.ips.output.json | anew $reconPath/http_from.clean.output.json > /dev/null
-		cat $reconPath/http_from.clean.domains.output.json | anew $reconPath/http_from.clean.output.json > /dev/null
+		#cat $reconPath/http_from.clean.ips.output.json | anew $reconPath/http_from.clean.output.json > /dev/null
+		cat $reconPath/http_from.clean.domains.output.json | tee $reconPath/http_from.clean.output.json > /dev/null
 		
 		# Create list of cleaned HTTP/HTTPs servers including IPs
 		local outputURLs=$reconPath/http_servers_clean.txt
 		local outputHttpsURLs=$reconPath/https_servers_clean.txt
-		cat	$reconPath/http_from.clean.output.json | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
-		cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
+		cat	$reconPath/http_from.clean.output.json | jq .url | sed 's/\"//g' | tee $outputURLs > /dev/null
+		#cat $reconPath/http_from.clean.output.json | jq 'select(has("final_url") and (.final_url | contains("https")) and has("input") and (.input | contains(":80"))) | {final_url, input}'
+		cat	$outputURLs | grep https | tee $outputHttpsURLs > /dev/null
 
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -806,6 +805,8 @@ do_clean() {
 		echo "Worflow ${FUNCNAME[0]} finished"
 		echo "Current time: $now"
 		echo "==========================================================================="
+	else	
+		echo "Input file $domains is empty or doesn't exist. Nothing to do"
 	fi
 }
 
