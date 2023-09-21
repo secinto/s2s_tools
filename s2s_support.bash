@@ -150,13 +150,12 @@ function removeDuplicate() {
 	echo "Removing duplicates for project $project"
 	echo "============================================================================"
 	
-	duplicateRemover -p $project
+	cleanAndFind -p $project
 }
 
 #============================================================================
-# Sends the specified file to elasticsearch for storage and indexing. 
-# The project is added within the fields as data and stored at an index 
-# depending on the type of tool used.
+# Analyzes the HTTPx JSON output to identify possible interesting hosts and
+# issues within them.
 #============================================================================
 function getFindings() {
 	if ! initialize "$@"; then
@@ -169,6 +168,23 @@ function getFindings() {
 	echo "============================================================================"
 	
 	simpleFinder -p $project 
+}
+
+#============================================================================
+# Analyzes the stored responses, including request and the whole chain, 
+# obtained by HTTPx. The output is written to the findings folder. 
+#============================================================================
+function analyzeResponses() {
+	if ! initialize "$@"; then
+		echo "Exiting"
+		return
+	fi
+
+	echo "============================================================================"
+	echo "Get findings for $project"
+	echo "============================================================================"
+	
+	analyzeResponses -p $project 
 }
 
 #============================================================================
