@@ -907,6 +907,8 @@ recon() {
 	echo "--- Performed recon for cleaned domains --- "
 	getFindings $project
 	echo "--- Get findings from obtained data --- "
+	analyzeResponses $project
+	echo "--- Analyzed obtained response data --- "
 	tls_check $project
 	echo "--- Identified issues with TLS and certs --- "
 	#web_tech_all $project
