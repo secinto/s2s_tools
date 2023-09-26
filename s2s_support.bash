@@ -175,7 +175,8 @@ function getFindings() {
 	echo "Analyze responses for $project"
 	echo "============================================================================"
 	
-	analyzeResponses -p $project }
+	analyzeResponses -p $project 
+}
 
 #============================================================================
 # Changes the ownership of all created files to user:researchers in order

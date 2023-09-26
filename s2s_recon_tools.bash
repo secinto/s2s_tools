@@ -90,7 +90,7 @@ subf_internal() {
 	echo "as a simple list of domains for input in other tools."
 	echo "============================================================================"
 
-	jq .host $outputJSON | sed "s/\"//g" | sed 's/\\n/\'$'\n''/g' | tee $outputTXT > /dev/null
+	jq .host $outputJSON | sed "s/\"//g" | sed 's/\\n/\'$'\n''/g' | anew $outputTXT > /dev/null
 
 }
 
@@ -213,7 +213,7 @@ dpux() {
 		
 		
 		# Performing DNS resolution and response generation
-		cat $inputTmp | dnsx -a -txt -mx -cname -aaaa -resp -soa -json -o $outputJSON 
+		cat $inputTmp | dnsx -any -resp -json -o $outputJSON 
 	
 		rm $inputTmp
 
@@ -346,7 +346,11 @@ http_from() {
 		
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
-			httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			if [[ "$#" -eq 5 && "$5" == "true" ]]; then
+				httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb
+			else 
+				httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			fi
 			sendToELK $output httpx
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
@@ -776,8 +780,13 @@ do_clean() {
 		if [ -f "$reconPath/http_from.clean.output.json" ]; then
 			rm $reconPath/http_from.clean.output.json
 		fi
-		# Perform resolution of cleaned domains.
-		http_from $project $domains "clean" "domains"
+		if [[ "$#" -eq 2 && "$2" == "true" ]]; then
+			# Perform resolution of cleaned domains.
+			http_from $project $domains "clean" "domains" "true"
+		else 
+			# Perform resolution of cleaned domains.
+			http_from $project $domains "clean" "domains"
+		fi
 		# Perform resolution of cleaned ips.
 		http_from $project $ips "clean" "ips"
 		
