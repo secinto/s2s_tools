@@ -426,7 +426,7 @@ function getUptime() {
 		mkdir -p $defaultPath/host
 		
 		local output=$defaultPath/findings/uptime.txt
-		local temp=$defaultPath/work/uptime.txt
+		local temp=$defaultPath/work/uptime
 
 		if [ -f $output ]; then
 			rm $output
@@ -440,8 +440,8 @@ function getUptime() {
 			if [ ! -z "$open_tcp_ports" ]; then
 				local port="$(echo $open_tcp_ports | awk -F',' '{print $1}')"  
 				echo "Getting uptime from $line on port $port"
-				sudo hping3 -p $port -S --tcp-timestamp -c 2 $line >$temp 2>&1
-				local outputText="$(cat $temp | grep "System uptime")"
+				sudo hping3 -p $port -S --tcp-timestamp -c 2 $line >$temp_$line.txt 2>&1
+				local outputText="$(cat $temp_$line.txt | grep "System uptime")"
 				if [ ! -z "$outputText" ]; then
 					echo $outputText | awk -v ipAddress=$line -v portInfo=$port '{print "{\"ip\": \"" ipAddress "\", \"port\": \"" portInfo "\", \"days\": \"" $4 "\", \"hours\": \"" $6 "\"}"}' >>$output
 				fi
