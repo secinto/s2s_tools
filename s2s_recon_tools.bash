@@ -788,7 +788,7 @@ do_clean() {
 			http_from $project $domains "clean" "domains"
 		fi
 		# Perform resolution of cleaned ips.
-		http_from $project $ips "clean" "ips"
+		#http_from $project $ips "clean" "ips"
 		
 		saveResponses "clean"
 
@@ -918,7 +918,7 @@ recon() {
 	echo "--- Get findings from obtained data --- "
 	#web_tech_all $project
 	#echo "--- web technologies obtained from HTTP servers"
-	#getWebserversWithProtocolIssues $project 
+	#getWebserversWithProtocolIssuescd /op $project 
 	#echo "--- Obtained web servers with protocol issues --- "
 	createServicesJSON $project
 	echo "--- Created services JSON --- "
