@@ -305,8 +305,44 @@ function saveAllResponses {
 }
 
 #============================================================================
-# Sends the specified data type (httpx, dpux, subf, ports) from all folders 
-# to elastic for storage and indexing.
+# Copies all screenshots into a general screenshot folder - replacing
+#============================================================================
+function copyScreenshots {
+
+	if ! initialize "$@"; then
+		echo "Exiting"
+		return
+	fi
+	
+	echo "==========================================================================="
+	echo "Coyping screenshots for project $project"
+	echo "==========================================================================="
+	local screenshotPath=$defaultPath/screenshots
+	mkdir -p $screenshotPath
+	
+	local responseDirList="$(find $responsePath/clean/screenshot/. -mindepth 1 -maxdepth 1 -type d -printf '%f\n')"
+
+	for dir in $responseDirList ; do
+		local host=$(basename $dir)
+		local completeDir=$responsePath/clean/screenshot/$dir
+		local files="$(find $completeDir/ -mindepth 1 -maxdepth 1 ! -name '*chain*' -type f -printf '%f\n')"
+		for entry in $files ; do
+			local file="$completeDir/$entry"
+			#echo "Coping file $file to $screenshotPath/$host.png"
+			cp $file $screenshotPath/$host.png
+		done
+	done
+
+	local now="$(date +'%d/%m/%Y-%k:%M:%S')"
+
+	echo "==========================================================================="
+	echo "Worflow ${FUNCNAME[0]} finished"
+	echo "Current time: $now"
+	echo "==========================================================================="
+}
+
+#============================================================================
+# Executes a specified command for all projects.
 #============================================================================
 function commandToALL {
 	echo "==========================================================================="

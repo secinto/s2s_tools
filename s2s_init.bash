@@ -219,10 +219,17 @@ function createElasticEnvironment() {
 	
 }
 
+
+#============================================================================
+# Joins the zerotier network for the specified network ID
+#============================================================================
 function joinZerotierNetwork() {
 	zerotier-cli join $ZEROTIER_NETWORK_ID
 }
 
+#============================================================================
+# Creates an automatic report for the specified project.
+#============================================================================
 function createReport() {
 	local report=$1
 	cd /opt/tools/report_generator_automatic
@@ -230,6 +237,10 @@ function createReport() {
 	cd ~
 }
 
+#============================================================================
+# Obtains the results from the remote recon machines and generates an
+# automatic report for the specified project.
+#============================================================================
 function getResultsAndCreateReport() {
 	getRemoteReconResults "$@"
 	createReport "$@"
