@@ -191,7 +191,7 @@ function getRemoteReconResults() {
 
 		fi
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
-
+		chown -R samareina:researchers /opt/s2s/$project
 		echo "==========================================================================="
 		echo " Worflow ${FUNCNAME[0]} finished"
 		echo " Current time: $now"

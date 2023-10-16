@@ -932,6 +932,8 @@ recon() {
 	cleanZeroFiles 
 	echo "FINISHED $now" > $defaultPath/recon_finished
 	echo "--- RECON FINISHED $now --- "
+	
+	chown -R samareina:researchers $defaultPath
 
 	echo "==========================================================================="
 	echo "Worflow ${FUNCNAME[0]} finished"
@@ -985,6 +987,7 @@ full_recon() {
 	github_dork "$@" & disown
 	
 	cleanZeroFiles
+	chown -R samareina:researchers $defaultPath
 
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 	echo "==========================================================================="
