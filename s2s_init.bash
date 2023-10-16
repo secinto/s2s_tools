@@ -226,7 +226,7 @@ function joinZerotierNetwork() {
 function createReport() {
 	local report=$1
 	cd /opt/tools/report_generator_automatic
-	automaticReportGenerator -language 2 -fetchData 1 -reportType 1 -domain $report
+	automaticReportGenerator -p $report
 	cd ~
 }
 
