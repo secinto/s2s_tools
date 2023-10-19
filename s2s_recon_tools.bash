@@ -643,20 +643,15 @@ dns_enum() {
 		local dns=$1
 	fi
 	
-	local inputTXT=$reconPath/subf.$dns.resv.txt
+	local outputTXT=$reconPath/subf.$dns.resv.txt
 	local output=$brutePath/$dns.enum.brute.txt
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
 	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
 
 	local run=true
 	
-	if [ ! -s "$inputTXT" ]; then
+	if [ ! -s "$outputTXT" ]; then
 		local run=false
-	#else
-	#	local dnsEntries="$(cat $inputTXT | wc -l)"
-	#	if [[ "$dnsEntries" -lt 3 ]]; then
-	#		local run=false
-	#	fi
 	fi
 	
 	if $run; then
@@ -680,7 +675,7 @@ dns_enum() {
 	fi
 	
 	if [ -f "$output" ]; then
-		cat $output | anew $inputTXT > /dev/null
+		cat $output | anew $outputTXT > /dev/null
 	fi
 
 }	
@@ -708,7 +703,8 @@ dns_fuzz() {
 		local dns=$1
 	fi
 	
-	local inputTXT=$reconPath/subf.$dns.resv.txt
+	local inputTXT=$reconPath/subf.$dns.output.txt
+	local outputTXT=$reconPath/subf.$dns.resv.txt
 
 	local outputRaw=$brutePath/$dns.fuzz.raw.txt
 	local outputResolved=$brutePath/$dns.fuzz.resv.txt
@@ -739,11 +735,11 @@ dns_fuzz() {
 		echo "Current time: $now"
 		echo "==========================================================================="			
 	else
-		echo "Not performing $FUNCNAME, input file $inputTXT is empty or missing."
+		echo "Not performing $FUNCNAME, input file $outputTXT is empty or missing."
 	fi
 	
 	if [ -f "$outputResolved" ]; then
-		cat $outputResolved | anew $inputTXT > /dev/null
+		cat $outputResolved | anew $outputTXT > /dev/null
 	fi
 
 }	
