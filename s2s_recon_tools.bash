@@ -38,12 +38,13 @@ subf_multi() {
 
 				sendToELK $outputJSON subf other
 				echo "--- All subdomains for $line enumerated --- "
+				
+				echo "$line" | anew $outputTXT > /dev/null
+			
+				dns_brute "$line" "multi"
 			else 
 				echo "Not performing $FUNCNAME since it has been performed recently."
 			fi
-			echo "$line" | anew $outputTXT > /dev/null
-			
-			dns_brute "$line" "multi"
 			echo "--- Subdomains for $line are resolved using brute force --- "
 			
 		done
