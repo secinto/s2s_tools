@@ -128,13 +128,14 @@ subf(){
 		
 		sendToELK $outputJSON subf
 		echo "--- All subdomains for $project enumerated --- "
+		
+		echo "$project" | anew $outputTXT > /dev/null
+
+		dns_brute "$@"
 	else 
 		echo "Not performing $FUNCNAME since it has been performed recently."
 	fi
 	
-	echo "$project" | anew $outputTXT > /dev/null
-
-	dns_brute "$@"
 	echo "--- Subdomains for $project are resolved using brute force --- "
 
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
