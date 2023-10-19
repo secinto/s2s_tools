@@ -141,7 +141,8 @@ function ffuf_dir() {
 	local output=$defaultPath/host/ffuf.$cleanedURL.output.json
 	local result=$defaultPath/host/ffuf.$cleanedURL.result.txt
 	
-	local responseCodeFilter="301,302,404"
+	
+	local responseCodeFilter="301,302,400,404,503"
 	local wildcard=0
 
 	if [ $# -eq 3 ]; then

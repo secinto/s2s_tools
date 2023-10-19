@@ -912,8 +912,10 @@ recon() {
 	echo "--- Cleaned the subdomains from duplicates --- "
 	#dnsmx "$@"
 	#echo "--- Identified dns mappings for cleaned domains --- "
-	do_clean $project
+	do_clean $project true
 	echo "--- Performed recon for cleaned domains --- "
+	copyScreenshots $project
+	echo "--- Moved screenshots into specific folder --- "
 	getFindings $project
 	echo "--- Get findings from obtained data --- "
 	#web_tech_all $project
