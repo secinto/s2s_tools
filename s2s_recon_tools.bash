@@ -724,7 +724,7 @@ dns_fuzz() {
 		echo "Current time: $now"
 		echo "==========================================================================="
 
-		alterx -l $inputTXT -en -o $outputRaw
+		alterx -l $inputTXT -en -o $outputRaw -l 1000000
 		
 		#shuffledns -d $dns -l $outputRaw -r $resolvers -silent | tee $outputResolved
 		puredns resolve $outputRaw -q -r $resolvers | tee $outputResolved > /dev/null
