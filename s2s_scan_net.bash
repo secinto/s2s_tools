@@ -405,6 +405,7 @@ function getUptime() {
 	fi
 
 	local input=$reconPath/ports.$project.output.xml
+	local script=/opt/tools/nmapXMLParser/nmapXMLParser.py
 
 	if [ $# -eq 2 ]; then
 		local input=$2
