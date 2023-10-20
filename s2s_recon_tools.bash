@@ -598,11 +598,15 @@ dns_brute() {
 	
 	# Resolving DNS entries found by subfinder. If resolved they are added to domains.
 	if [ -s "$inputTXT" ]; then
+		echo "Resolving subdomains obtained from subfinder"
 		echo "$dns" | anew $inputTXT >/dev/null
+		
 		puredns resolve $inputTXT -q -r $resolvers | tee $outputTXT > /dev/null
 
 		dns_enum "$@" 
 		dns_fuzz "$@" 
+		
+		cat $inputTXT | anew $domains
 
 	else
 		echo "No subdomains input $inputTXT available"
