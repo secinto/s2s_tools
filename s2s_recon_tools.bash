@@ -81,7 +81,7 @@ subf_internal() {
 	echo "Current time: $now"
 	echo "============================================================================"
 	
-	subfinder -oJ -o "$outputJSON" -d $domain -rL $resolvers
+	subfinder -oJ -o "$outputJSON" -d $domain -rL $resolvers -es passivetotal
 	# Not sure why it is done! Could be that the timestamp is not renewed?
 	touch $outputJSON
 	
@@ -204,18 +204,17 @@ dpux() {
 			for line in $(<$multi); 
 			do 
 				echo "$line" | anew $inputTmp > /dev/null
-				echo "s1._domainkey.$line" | anew $inputTmp > /dev/null
-				echo "_dmarc.$line" | anew $input > /dev/null
+				#echo "s1._domainkey.$line" | anew $inputTmp > /dev/null
+				#echo "_dmarc.$line" | anew $input > /dev/null
 			done
 		else
-			echo "s1._domainkey.$project" | anew $inputTmp > /dev/null
-			echo "_dmarc.$project" | anew $inputTmp > /dev/null
+			#echo "s1._domainkey.$project" | anew $inputTmp > /dev/null
+			#echo "_dmarc.$project" | anew $inputTmp > /dev/null
 			echo "$project" | anew $inputTmp > /dev/null
 		fi
 		
-		
 		# Performing DNS resolution and response generation
-		cat $inputTmp | dnsx -any -resp -json -o $outputJSON 
+		cat $inputTmp | dnsx -a -aaaa -mx -txt -srv -ptr -soa -ns -cname -caa -axfr -resp -json -o $outputJSON
 	
 		rm $inputTmp
 
@@ -354,6 +353,9 @@ http_from() {
 				httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 			fi
 			sendToELK $output httpx
+		elif [ $type == "resolve" ]; then
+			# Required for removing duplicates up front
+			httpx -l $input -silent -rl 8 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
@@ -601,7 +603,7 @@ dns_brute() {
 		echo "Resolving subdomains obtained from subfinder"
 		echo "$dns" | anew $inputTXT >/dev/null
 		
-		puredns resolve $inputTXT -q -r $resolvers | tee $outputTXT > /dev/null
+		shuffledns -d $dns -l $inputTXT -r $resolvers -o $outputTXT -silent > /dev/null
 
 		dns_enum "$@" 
 		dns_fuzz "$@" 
@@ -906,8 +908,9 @@ recon() {
 	echo "--- Additional IP info obtained --- "
 	ports $project
 	echo "--- All open ports for IPs are identified --- "
-	generateHostMappings $project
+	generateHostMappings $project	
 	echo "--- Create port hostname mappings --- "
+	http_from
 	http_from_all "$@"
 	echo "--- HTTP servers from domains are enumerated --- "
 	removeDuplicate "$@"
