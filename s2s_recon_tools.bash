@@ -180,10 +180,6 @@ dpux() {
 		echo "Current time: $now"
 		echo "============================================================================"
 
-		#if [ -f "$removedIPs" ]; then
-		#	rm $removedIPs
-		#fi
-	
 		if [ -f "$outputJSON" ]; then
 			rm $outputJSON
 		fi
@@ -192,32 +188,23 @@ dpux() {
 		echo "Creating plain list of unique IPs for domain $project"
 		echo "============================================================================"
 		
-		# Adding TLD domain if not present and dmarc domains for mail settings discovery
-		# Unusual domains such as _domainkey, _dmarc and so on will be filtered later on
-		if [ -f $inputTmp ]; then
-			rm $inputTmp
-		fi
-		
-		cat $input | anew $inputTmp > /dev/null
 
 		if [ -s "$multi" ]; then
 			for line in $(<$multi); 
 			do 
-				echo "$line" | anew $inputTmp > /dev/null
+				echo "$line" | anew $input > /dev/null
 				#echo "s1._domainkey.$line" | anew $inputTmp > /dev/null
 				#echo "_dmarc.$line" | anew $input > /dev/null
 			done
 		else
 			#echo "s1._domainkey.$project" | anew $inputTmp > /dev/null
 			#echo "_dmarc.$project" | anew $inputTmp > /dev/null
-			echo "$project" | anew $inputTmp > /dev/null
+			echo "$project" | anew $input > /dev/null
 		fi
 		
 		# Performing DNS resolution and response generation
-		cat $inputTmp | dnsx -a -aaaa -mx -txt -srv -ptr -soa -ns -cname -caa -axfr -resp -json -o $outputJSON
+		cat $input | dnsx -a -aaaa -mx -txt -srv -ptr -soa -ns -cname -caa -axfr -resp -json -o $outputJSON
 	
-		rm $inputTmp
-
 		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputSimple > /dev/null
 		#cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputHostToIP > /dev/null
 		#cat $outputJSON | jq .host | sed 's/\"//g' | tee $outputDomains > /dev/null
@@ -910,7 +897,6 @@ recon() {
 	echo "--- All open ports for IPs are identified --- "
 	generateHostMappings $project	
 	echo "--- Create port hostname mappings --- "
-	http_from
 	http_from_all "$@"
 	echo "--- HTTP servers from domains are enumerated --- "
 	removeDuplicate "$@"
@@ -931,8 +917,6 @@ recon() {
 	echo "--- Created services JSON --- "
 	getUptime $project
 	echo "--- Obtained uptime of services --- "
-	analyzeResponses -p $project
-	echo "--- Analyzed responses from HTTP requests --- "	
 	tls_check $project
 	echo "--- Identified issues with TLS and certs --- "
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"

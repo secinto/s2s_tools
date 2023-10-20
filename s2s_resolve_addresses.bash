@@ -55,7 +55,6 @@ function findIPAddressesForHosts() {
 
 #============================================================================
 # Obtains additional information to each identified IP address using IPinfo
-
 #============================================================================
 function getIPInfo() {
 	initialize "$@"
@@ -105,10 +104,17 @@ function getIPInfo() {
 	echo "==========================================================================="	
 }
 
+#============================================================================
+# Filtering obtained IPs. Currently only IPs used for Ofice 365 signaling (
+# are excluded autodiscover, sip, ...).
+#============================================================================
 function filterIPs() {
+
 
 	local input=$reconPath/dpux.txt
 	local output=$reconPath/dpux_clean.txt
+
+	echo "Filtering obtained IPs to exclude IPs used for office 365 signaling (autodiscover, sip, ...)"
 
 	local ipsToRemove="$(mapcidr -silent -cl /opt/tools/s2s_tools/resources/microsoft_ips.txt -mi $input)"
 	cat $input | tee $output > /dev/null
