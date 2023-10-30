@@ -182,7 +182,7 @@ function getRemoteReconResults() {
 			echo "Getting $project ZIP file from remote host $SSH_S2S_SERVER"
 			#rm -rf $defaultPath
 			local return="$(scp $ssh_base:/opt/s2s/$project/$project.zip /opt/s2s/$project/archive/$project.$date.zip)"
-			cleanProject $project
+			#cleanProject $project
 			unzip -o /opt/s2s/$project/archive/$project.$date.zip -d /
 
 			local ssh_command="rm /opt/s2s/$project/recon_started"

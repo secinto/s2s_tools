@@ -81,7 +81,7 @@ subf_internal() {
 	echo "Current time: $now"
 	echo "============================================================================"
 	
-	subfinder -oJ -o "$outputJSON" -d $domain -rL $resolvers -es passivetotal
+	subfinder -oJ -o "$outputJSON" -d $domain -rL $resolvers
 	# Not sure why it is done! Could be that the timestamp is not renewed?
 	touch $outputJSON
 	
@@ -666,7 +666,7 @@ dns_enum() {
 		echo "Current time: $now"
 		echo "==========================================================================="			
 	else
-		echo "Not performing $FUNCNAME, input file $inputTXT is empty or missing."
+		echo "Not performing $FUNCNAME, input file $outputTXT is empty or missing."
 	fi
 	
 	if [ -f "$output" ]; then
@@ -700,6 +700,7 @@ dns_fuzz() {
 	
 	local inputTXT=$reconPath/subf.$dns.output.txt
 	local outputTXT=$reconPath/subf.$dns.resv.txt
+	local tempInput=$reconPath/subf.$dns.temp.txt
 
 	local outputRaw=$brutePath/$dns.fuzz.raw.txt
 	local outputResolved=$brutePath/$dns.fuzz.resv.txt
@@ -718,8 +719,11 @@ dns_fuzz() {
 		echo "Worflow ${FUNCNAME[0]} started"
 		echo "Current time: $now"
 		echo "==========================================================================="
+		
+		cp $inputTXT $tempInput
+		cat $outputTXT | anew $tempInput > /dev/null
 
-		alterx -l $inputTXT -en -o $outputRaw -l 1000000
+		alterx -l $tempInput -en -o $outputRaw -limit 1000000
 		
 		#shuffledns -d $dns -l $outputRaw -r $resolvers -silent | tee $outputResolved
 		puredns resolve $outputRaw -q -r $resolvers | tee $outputResolved > /dev/null
