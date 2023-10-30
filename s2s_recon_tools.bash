@@ -23,7 +23,6 @@ subf_multi() {
 		return
 	fi
 	
-	local domains=$defaultPath/domains.txt
 	local input=$defaultPath/multi_domains.txt
 	
 	dos2unix $input
@@ -595,7 +594,7 @@ dns_brute() {
 		dns_enum "$@" 
 		dns_fuzz "$@" 
 		
-		cat $inputTXT | anew $domains
+		#cat $inputTXT | anew $domains
 
 	else
 		echo "No subdomains input $inputTXT available"
