@@ -41,6 +41,11 @@ subf_multi() {
 				echo "$line" | anew $outputTXT > /dev/null
 			
 				dns_brute "$line" "multi"
+				echo "--- DNS resolving finished --- "
+				
+				vhost_check "$line"
+				echo "--- Possible vhosts resolved --- "
+
 			else 
 				echo "Not performing $FUNCNAME since it has been performed recently."
 			fi
@@ -132,6 +137,11 @@ subf(){
 		echo "$project" | anew $outputTXT > /dev/null
 
 		dns_brute "$@"
+		echo "--- DNS resolving finished --- "
+
+		vhost_check "$@"
+		echo "--- Possible vhosts resolved --- "
+
 	else 
 		echo "Not performing $FUNCNAME since it has been performed recently."
 	fi
@@ -937,8 +947,6 @@ recon() {
 		subf "$@"
 	fi
 	
-	vhost_check $project
-	echo "--- Possible vhosts resolved --- "
 	dpux $project
 	echo "--- All IPs are resolved --- "
 	getIPInfo $project
