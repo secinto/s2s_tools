@@ -319,11 +319,6 @@ ports() {
 #============================================================================
 http_from() {
 
-	if ! initialize "$@"; then
-		echo "Exiting"
-		return
-	fi
-	
 	if [ "$#" -lt 3 ]; then
 		echo "Missing input parameters, 3 required (project, input, type)"
 	else 
@@ -351,6 +346,7 @@ http_from() {
 			sendToELK $output httpx
 		elif [ $type == "resolve" ]; then
 			# Required for removing duplicates up front
+			local output=$reconPath/$FUNCNAME.$1.$type.output.json
 			httpx -l $input -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
@@ -495,7 +491,7 @@ http_from_all() {
 vhost_check() {
 
 	local input=$reconPath/subf.$1.output.txt
-	local httpOutput=$reconPath/http_from.resolve.output.txt
+	local httpOutput=$reconPath/http_from.$1.resolve.output.json
 	local dedupOutput=$reconPath/$1.resolved.unique.txt
 	
 	if [ -s "$input" ]; then
