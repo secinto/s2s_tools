@@ -501,7 +501,7 @@ vhost_check() {
 	
 	local input=$reconPath/subf.$project.output.txt
 	local httpOutput=$reconPath/http_from.resolve.output.txt
-	local dedupOutput=)$reconPath/$project.resolved.unique.txt
+	local dedupOutput=$reconPath/$project.resolved.unique.txt
 	
 	if [ -s "$input" ]; then
 		echo "==========================================================================="
