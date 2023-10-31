@@ -334,19 +334,19 @@ http_from() {
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
 			if [[ "$#" -eq 5 && "$5" == "true" ]]; then
-				httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb
+				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb
 			else 
-				httpx -l $input -rl 8 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 			fi
 			sendToELK $output httpx
 		elif [ $type == "resolve" ]; then
 			# Required for removing duplicates up front
-			httpx -l $input -silent -rl 8 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			httpx -l $input -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			httpx -l $input -silent -rl 8 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			httpx -l $input -silent -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
@@ -474,6 +474,51 @@ http_from_all() {
 	echo "Worflow ${FUNCNAME[0]} finished"
 	echo "Current time: $now"
 	echo "==========================================================================="
+}
+
+#============================================================================
+# Simple VHOST enumeration via HTTPX. All the obtained domain names from 
+# subfinder are tried via HTTPx. If a request is received the domain is added 
+# to domains.txt -> If it is just a VHost it may not be added during DNS 
+# resolution -> Wildcard domain, but VHosts exist on server.
+#============================================================================
+vhost_check() {
+
+	if ! initialize "$@"; then
+		echo "Exiting"
+		return
+	fi
+	
+	local input=$reconPath/subf.$project.output.txt
+	local httpOutput=$reconPath/http_from.resolve.output.txt
+	local dedupOutput=)$reconPath/$project.resolved.unique.txt
+	
+	if [ -s "$input" ]; then
+		echo "==========================================================================="
+		echo "Using $input"
+		echo "to perform ${FUNCNAME[0]} on $1"
+		echo "==========================================================================="
+		
+		http_from $project $input "resolve"
+		
+		cleanAndFind -p $project -f $httpOutput -uhf $dedupOutput
+		
+		cat $dedupOutput | anew domains.txt
+		
+		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
+
+		echo "==========================================================================="
+		echo "Worflow ${FUNCNAME[0]} finished"
+		echo "Current time: $now"
+		echo "==========================================================================="
+	else 
+		echo "==========================================================================="
+		echo "Required input $input"
+		echo "not found - not performing ${FUNCNAME[0]}"
+		echo "==========================================================================="
+	fi
+	
+
 }
 
 #============================================================================
@@ -892,6 +937,8 @@ recon() {
 		subf "$@"
 	fi
 	
+	vhost_check $project
+	echo "--- Possible vhosts resolved --- "
 	dpux $project
 	echo "--- All IPs are resolved --- "
 	getIPInfo $project
