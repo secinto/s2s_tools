@@ -494,14 +494,9 @@ http_from_all() {
 #============================================================================
 vhost_check() {
 
-	if ! initialize "$@"; then
-		echo "Exiting"
-		return
-	fi
-	
-	local input=$reconPath/subf.$project.output.txt
+	local input=$reconPath/subf.$1.output.txt
 	local httpOutput=$reconPath/http_from.resolve.output.txt
-	local dedupOutput=$reconPath/$project.resolved.unique.txt
+	local dedupOutput=$reconPath/$1.resolved.unique.txt
 	
 	if [ -s "$input" ]; then
 		echo "==========================================================================="
@@ -509,11 +504,11 @@ vhost_check() {
 		echo "to perform ${FUNCNAME[0]} on $1"
 		echo "==========================================================================="
 		
-		http_from $project $input "resolve"
+		http_from $1 $input "resolve"
 		
-		cleanAndFind -p $project -f $httpOutput -uhf $dedupOutput
+		cleanAndFind -p $1 -f $httpOutput -uhf $dedupOutput
 		
-		cat $dedupOutput | anew domains.txt
+		cat $dedupOutput | anew $defaultPath/domains.txt
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 
