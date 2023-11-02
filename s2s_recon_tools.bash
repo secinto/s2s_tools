@@ -41,10 +41,6 @@ subf_multi() {
 				echo "$line" | anew $outputTXT > /dev/null
 			
 				dns_brute "$line" "multi"
-				echo "--- DNS resolving finished --- "
-				
-				vhost_check "$line"
-				echo "--- Possible vhosts resolved --- "
 
 			else 
 				echo "Not performing $FUNCNAME since it has been performed recently."
@@ -137,10 +133,6 @@ subf(){
 		echo "$project" | anew $outputTXT > /dev/null
 
 		dns_brute "$@"
-		echo "--- DNS resolving finished --- "
-
-		vhost_check "$@"
-		echo "--- Possible vhosts resolved --- "
 
 	else 
 		echo "Not performing $FUNCNAME since it has been performed recently."
@@ -483,46 +475,6 @@ http_from_all() {
 }
 
 #============================================================================
-# Simple VHOST enumeration via HTTPX. All the obtained domain names from 
-# subfinder are tried via HTTPx. If a request is received the domain is added 
-# to domains.txt -> If it is just a VHost it may not be added during DNS 
-# resolution -> Wildcard domain, but VHosts exist on server.
-#============================================================================
-vhost_check() {
-
-	local input=$reconPath/subf.$1.output.txt
-	local httpOutput=$reconPath/http_from.$1.resolve.output.json
-	local dedupOutput=$reconPath/$1.resolved.unique.txt
-	
-	if [ -s "$input" ]; then
-		echo "==========================================================================="
-		echo "Using $input"
-		echo "to perform ${FUNCNAME[0]} on $1"
-		echo "==========================================================================="
-		
-		http_from $1 $input "resolve"
-		
-		cleanAndFind -p $1 -f $httpOutput -uhf $dedupOutput
-		
-		cat $dedupOutput | anew $defaultPath/domains.txt
-		
-		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
-
-		echo "==========================================================================="
-		echo "Worflow ${FUNCNAME[0]} finished"
-		echo "Current time: $now"
-		echo "==========================================================================="
-	else 
-		echo "==========================================================================="
-		echo "Required input $input"
-		echo "not found - not performing ${FUNCNAME[0]}"
-		echo "==========================================================================="
-	fi
-	
-
-}
-
-#============================================================================
 # Verifies for the provided input host list if an HTTP service exists and
 # provides all relevant information about it. 
 # As input a list of hosts - either DNS or IP (and port) - is used for 
@@ -638,6 +590,9 @@ dns_brute() {
 		shuffledns -d $dns -l $inputTXT -r $resolvers -o $outputTXT -silent > /dev/null
 
 		dns_enum "$@" 
+		
+		vhost_enum "$@" 
+		
 		dns_fuzz "$@" 
 		
 		#cat $inputTXT | anew $domains
@@ -721,6 +676,58 @@ dns_enum() {
 }	
 
 #============================================================================
+# Simple VHOST enumeration via HTTPX. All the obtained domain names from 
+# subfinder are tried via HTTPx. If a request is received the domain is added 
+# to domains.txt -> If it is just a VHost it may not be added during DNS 
+# resolution -> Wildcard domain, but VHosts exist on server.
+#============================================================================
+vhost_check() {
+
+	if [ "$#" -eq 1 ]; then
+		if ! initialize "$@"; then
+			echo "Exiting"
+			return
+		fi
+		local dns=$project
+	else
+		# Needed for multi domains to brute force each entry
+		local dns=$1
+	fi
+
+	local input=$reconPath/subf.$dns.output.txt
+	local httpOutput=$reconPath/http_from.$dns.resolve.output.json
+	local dedupOutput=$reconPath/$dns.resolved.unique.txt
+	local resolvOutput=$reconPath/subf.$dns.resv.txt
+	
+	if [ -s "$input" ]; then
+		echo "==========================================================================="
+		echo "Using $input"
+		echo "to perform ${FUNCNAME[0]} on $dns"
+		echo "==========================================================================="
+		
+		http_from $dns $input "resolve"
+		
+		cleanAndFind -p $dns -f $httpOutput -uhf $dedupOutput
+		
+		cat $dedupOutput | anew $resolvOutput
+		
+		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
+
+		echo "==========================================================================="
+		echo "Worflow ${FUNCNAME[0]} finished"
+		echo "Current time: $now"
+		echo "==========================================================================="
+	else 
+		echo "==========================================================================="
+		echo "Required input $input"
+		echo "not found - not performing ${FUNCNAME[0]}"
+		echo "==========================================================================="
+	fi
+	
+
+}
+
+#============================================================================
 # Performs a brute force enumeration of subdomains of the specified project
 # using puredns.
 #
@@ -743,9 +750,7 @@ dns_fuzz() {
 		local dns=$1
 	fi
 	
-	local inputTXT=$reconPath/subf.$dns.output.txt
-	local outputTXT=$reconPath/subf.$dns.resv.txt
-	local tempInput=$reconPath/subf.$dns.temp.txt
+	local inputTXT=$reconPath/subf.$dns.resv.txt
 
 	local outputRaw=$brutePath/$dns.fuzz.raw.txt
 	local outputResolved=$brutePath/$dns.fuzz.resv.txt
@@ -765,10 +770,7 @@ dns_fuzz() {
 		echo "Current time: $now"
 		echo "==========================================================================="
 		
-		cp $inputTXT $tempInput
-		cat $outputTXT | anew $tempInput > /dev/null
-
-		alterx -l $tempInput -en -o $outputRaw -limit 1000000
+		alterx -l $inputTXT -en -o $outputRaw -limit 1000000
 		
 		#shuffledns -d $dns -l $outputRaw -r $resolvers -silent | tee $outputResolved
 		puredns resolve $outputRaw -q -r $resolvers | tee $outputResolved > /dev/null
@@ -779,11 +781,11 @@ dns_fuzz() {
 		echo "Current time: $now"
 		echo "==========================================================================="			
 	else
-		echo "Not performing $FUNCNAME, input file $outputTXT is empty or missing."
+		echo "Not performing $FUNCNAME, input file $inputTXT is empty or missing."
 	fi
 	
 	if [ -f "$outputResolved" ]; then
-		cat $outputResolved | anew $outputTXT > /dev/null
+		cat $outputResolved | anew $inputTXT > /dev/null
 	fi
 
 }	
