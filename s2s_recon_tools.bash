@@ -591,7 +591,7 @@ dns_brute() {
 
 		dns_enum "$@" 
 		
-		vhost_enum "$@" 
+		vhost_check "$@" 
 		
 		dns_fuzz "$@" 
 		
