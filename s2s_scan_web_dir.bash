@@ -9,7 +9,7 @@
 # 
 # Additional parameters:
 #
-#	ferox project URL [recurse] [errorCodes] [defaultLists] [auto] [words] [wordlist]
+#	ferox project URL [recurse] [errorCodes] [defaultLists] [auto] [words] [wordlist] [method]
 #
 #	[recurse] 		Boolean		Recursion for every found item
 #	[errorCodes]	String		List of comma separated error codes which should be filtered
@@ -19,7 +19,7 @@
 #	[auto]			Boolean		Enables automatic backoff and collection of words
 # 	[words]			Integer		Comma separated list of Word counts which should be filtered
 #	[wordlist]		String		Manually specified word list.
-#
+#	[method]		String		Comma separated list of methods to be used. E.g.: POST,DELETE,GET. Default GET is used
 #
 # Used tools:
 # source{1}:https://github.com/epi052/feroxbuster
@@ -65,29 +65,38 @@ function ferox() {
 			if [ "$5" -eq 1 ]; then
 				local wordlist=/opt/tools/s2s_tools/resources/raft-medium-directories-lowercase.txt
 				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
+			elif [ "$5" -eq 2 ]; then
+				local wordlist=/opt/tools/s2s_tools/resources/api_wordlist.txt
+				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
 			fi
 		fi
+	fi
+	
+	local method="GET"
+	
+	if [ "$#" -gt 8 ]; then
+		local method=$9
 	fi
 	
 	if $recursive; then
 		if [ "$#" -gt 5 ]; then
 			if [ "$#" -gt 6 ]; then
-				feroxbuster --smart -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -W $7
+				feroxbuster --smart -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -W $7 -m $method
 			else
-				feroxbuster --auto-tune --collect-words -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist
+				feroxbuster --auto-tune --collect-words -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -m $method
 			fi
 		else
-			feroxbuster --smart -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist
+			feroxbuster --smart -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -m $method
 		fi	
 	else
 		if [ "$#" -gt 5 ]; then
 			if [ "$#" -gt 6 ]; then
-				feroxbuster --smart -r -k -f -n -C $errorCodes --url $url --json -o $output -w $wordlist -W $7
+				feroxbuster --smart -r -k -f -n -C $errorCodes --url $url --json -o $output -w $wordlist -W $7 -m $method
 			else
-				feroxbuster --auto-tune --collect-words -r -n -k -f -C $errorCodes --url $url --json -o $output -w $wordlist
+				feroxbuster --auto-tune --collect-words -r -n -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -m $method
 			fi
 		else
-			feroxbuster --smart -r -k -f -n -C $errorCodes --url $url --json -o $output -w $wordlist 
+			feroxbuster --smart -r -k -f -n -C $errorCodes --url $url --json -o $output -w $wordlist -m $method
 		fi	
 	fi
 	
@@ -145,15 +154,34 @@ function ffuf_dir() {
 	local responseCodeFilter="301,302,400,404,503"
 	local wildcard=0
 
-	if [ $# -eq 3 ]; then
-		if [[ $3 == "--wildcard" ]]; then
+	if [ "$#" -gt 2 ]; then
+		if [[ "$3" == "--wildcard" ]]; then
 			((wildcard=1))
 		else
 			responseCodeFilter+=",$3"
 		fi
 	fi
+	
+	local wordlist=/opt/tools/s2s_tools/resources/onelistforallmicro.txt
+	
+	if [ "$#" -gt 3 ]; then
+			if [ "$4" -eq 1 ]; then
+				local wordlist=/opt/tools/s2s_tools/resources/raft-medium-directories-lowercase.txt
+				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
+			elif [ "$4" -eq 2 ]; then
+				local wordlist=/opt/tools/s2s_tools/resources/api_wordlist.txt
+				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
+			else 
+				if [ "$#" -gt 4 ]; then
+					local wordlist=$5
+					local wordlist_name=$(getFilename $wordlist)
+					local output=$outputPath/ffuf.$cleanedURL.$wordlist_name.output.json
+				fi
+			fi
+	fi
 
-	ffuf -fc $responseCodeFilter -w /opt/tools/s2s_tools/resources/onelistforallmicro.txt -u $url/FUZZ -o $output -of json
+
+	ffuf -fc $responseCodeFilter -w $wordlist -u $url/FUZZ -o $output -of json
 
 	sendToELK $output ffuf
 	
