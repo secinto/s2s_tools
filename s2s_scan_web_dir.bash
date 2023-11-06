@@ -165,19 +165,19 @@ function ffuf_dir() {
 	local wordlist=/opt/tools/s2s_tools/resources/onelistforallmicro.txt
 	
 	if [ "$#" -gt 3 ]; then
-			if [ "$4" -eq 1 ]; then
-				local wordlist=/opt/tools/s2s_tools/resources/raft-medium-directories-lowercase.txt
-				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
-			elif [ "$4" -eq 2 ]; then
-				local wordlist=/opt/tools/s2s_tools/resources/api_wordlist.txt
-				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
-			else 
-				if [ "$#" -gt 4 ]; then
-					local wordlist=$5
-					local wordlist_name=$(getFilename $wordlist)
-					local output=$outputPath/ffuf.$cleanedURL.$wordlist_name.output.json
-				fi
+		if [ "$4" -eq 1 ]; then
+			local wordlist=/opt/tools/s2s_tools/resources/raft-medium-directories-lowercase.txt
+			local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
+		elif [ "$4" -eq 2 ]; then
+			local wordlist=/opt/tools/s2s_tools/resources/api_wordlist.txt
+			local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
+		else 
+			if [ "$#" -gt 4 ]; then
+				local wordlist=$5
+				local wordlist_name=$(getFilename $wordlist)
+				local output=$outputPath/ffuf.$cleanedURL.$wordlist_name.output.json
 			fi
+		fi
 	fi
 
 
