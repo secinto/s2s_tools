@@ -56,6 +56,8 @@ function ferox() {
 	local wordlist=/opt/tools/s2s_tools/resources/onelistforallmicro.txt
 	local output=$outputPath/ferox.$cleanedURL.onelist.output.json
 	
+	local method="GET"
+	
 	if [ "$#" -gt 4 ]; then
 		if [ "$#" -gt 7 ]; then
 				local wordlist=$8
@@ -68,11 +70,10 @@ function ferox() {
 			elif [ "$5" -eq 2 ]; then
 				local wordlist=/opt/tools/s2s_tools/resources/api_wordlist.txt
 				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
+				local method="POST,GET"
 			fi
 		fi
 	fi
-	
-	local method="GET"
 	
 	if [ "$#" -gt 8 ]; then
 		local method=$9

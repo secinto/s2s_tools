@@ -889,7 +889,7 @@ function tls_check() {
 		#sslyze --targets_in $inputIPs --json_out $outputIPs
 		rm $defaultPath/work/*.json
 		
-		interlace -tL $input -o $defaultPath/work -c "$script -oJ $defaultPath/work/ --fast --assume-http --connect-timeout 900 --openssl-timeout 900 --warnings off _target_"
+		interlace -threads 10 -tL $input -o $defaultPath/work -c "$script -oJ $defaultPath/work/ --fast --assume-http --connect-timeout 900 --openssl-timeout 900 --warnings off _target_"
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 
