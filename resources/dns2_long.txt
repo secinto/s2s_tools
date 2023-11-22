@@ -1,3 +1,7 @@
+inigriti
+bugbounty
+hackerone
+bugcrowd
 passbolt
 swagger
 commands

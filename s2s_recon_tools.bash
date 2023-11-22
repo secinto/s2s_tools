@@ -331,15 +331,15 @@ http_from() {
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
 			if [[ "$#" -eq 5 && "$5" == "true" ]]; then
-				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb
+				httpx -l $input -silent -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb
 			else 
-				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+				httpx -l $input -silent -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 			fi
 			sendToELK $output httpx
 		elif [ $type == "resolve" ]; then
 			# Required for removing duplicates up front
 			local output=$reconPath/$FUNCNAME.$1.$type.output.json
-			httpx -l $input -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			httpx -l $input -silent -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
@@ -836,18 +836,14 @@ do_clean() {
 
 		# Create list of cleaned HTTPs servers without IPs.
 		local outputDomainURLs=$reconPath/https_servers_clean_domains.txt
-		cat	$reconPath/http_from.clean.domains.output.json | jq .url | grep https | sed 's/\"//g' | sed 's/:443//g' | tee $outputDomainURLs > /dev/null
+		cat	$reconPath/http_from.clean.domains.output.json | jq .url | grep https | sed 's/\"//g' | sed 's/:443//g' | anew $outputDomainURLs > /dev/null
 		
 		# Create combined list of cleaned HTTP resolution
-		#cat $reconPath/http_from.clean.ips.output.json | anew $reconPath/http_from.clean.output.json > /dev/null
-		cat $reconPath/http_from.clean.domains.output.json | tee $reconPath/http_from.clean.output.json > /dev/null
+		#cat $reconPath/http_from.clean.domains.output.json | tee $reconPath/http_from.clean.output.json > /dev/null
 		
 		# Create list of cleaned HTTP/HTTPs servers including IPs
-		local outputURLs=$reconPath/http_servers_clean.txt
-		local outputHttpsURLs=$reconPath/https_servers_clean.txt
-		cat	$reconPath/http_from.clean.output.json | jq .url | sed 's/\"//g' | tee $outputURLs > /dev/null
-		#cat $reconPath/http_from.clean.output.json | jq 'select(has("final_url") and (.final_url | contains("https")) and has("input") and (.input | contains(":80"))) | {final_url, input}'
-		cat	$outputURLs | grep https | tee $outputHttpsURLs > /dev/null
+		#local outputURLs=$reconPath/http_servers_clean.txt
+		#cat	$reconPath/http_from.clean.output.json | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -956,8 +952,8 @@ recon() {
 	#echo "--- Identified dns mappings for cleaned domains --- "
 	do_clean $project
 	echo "--- Performed recon for cleaned domains --- "
-	copyScreenshots $project
-	echo "--- Moved screenshots into specific folder --- "
+	#copyScreenshots $project
+	#echo "--- Moved screenshots into specific folder --- "
 	getFindings $project
 	echo "--- Get findings from obtained data --- "
 	#web_tech_all $project

@@ -209,6 +209,7 @@ function createElasticEnvironment() {
 
 	if [[ -n "${S2S_ELK_SERVER+set}" && -n "${S2S_ELK_USER+set}" && -n "${S2S_ELK_PASS+set}" ]]; then
 		local configFile=~/.config/elasticPusher/settings.yaml
+		mkdir -p ~/.config/elasticPusher
 		echo "---" > $configFile
 		echo "elk_host: \"$S2S_ELK_SERVER\"" >> $configFile
 		echo "username: \"$S2S_ELK_USER\"" >> $configFile
