@@ -330,20 +330,20 @@ http_from() {
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
 			if [[ "$#" -eq 5 && "$5" == "true" ]]; then
-				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb
+				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb -random-agent=false
 			else 
-				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -random-agent=false
 			fi
 			sendToELK $output httpx
 		elif [ $type == "resolve" ]; then
 			# Required for removing duplicates up front
 			local output=$reconPath/$FUNCNAME.$1.$type.output.json
-			httpx -l $input -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			httpx -l $input -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -random-agent=false
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			httpx -l $input -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			httpx -l $input -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -random-agent=false
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
