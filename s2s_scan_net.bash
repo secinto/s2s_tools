@@ -459,8 +459,6 @@ function getUptime() {
 	fi
 }
 
-
-
 #============================================================================
 # Performs a NMAP scan over the hosts and ports already identified to be 
 # open and listening. It uses the DPUX list of hosts and ports for input as 

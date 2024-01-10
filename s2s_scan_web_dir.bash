@@ -5,18 +5,118 @@
 # a default wordlist and the gobuster tool.
 #
 # Usage:
-#	ferox project URL
+#	fuzz project URL
 # 
 # Additional parameters:
 #
-#	ferox project URL [recurse] [errorCodes] [defaultLists] [auto] [words] [wordlist] [method]
+#	fuzz project URL [recurse] [errorCodes] [defaultLists] [words] [wordlist] [method]
+#            $1    $2    $3          $4           $5           $6      $7         $8
 #
 #	[recurse] 		Boolean		Recursion for every found item
 #	[errorCodes]	String		List of comma separated error codes which should be filtered
 # 	[defaultLists]  Integer		Switching between default list 
 #									0 ... onelistforallmicro
 #									1 ... raft-medium-directories-lowercase
-#	[auto]			Boolean		Enables automatic backoff and collection of words
+# 	[words]			Integer		Comma separated list of Word counts which should be filtered
+#	[wordlist]		String		Manually specified word list.
+#	[method]		String		Comma separated list of methods to be used. E.g.: POST,DELETE,GET. Default GET is used
+#
+# Used tools:
+# source{1}:https://github.com/epi052/feroxbuster
+# install{1}:{sudo snap install feroxbuster}
+# source{2}:https://github.com/danielmiessler/SecLists
+# install{2}:{git clone https://github.com/danielmiessler/SecLists.git}
+#============================================================================
+function fuzz() {
+
+	if ! initialize "$@"; then
+		echo "Exiting"
+		return
+	fi
+	
+	local url=$2
+	local cleanedURL=$(cleanURLKeepHTTPAndHTTPS $url)
+	local outputPath=$defaultPath/host
+	mkdir -p $outputPath
+	
+	local commonOptions=""
+	
+	if [ "$#" -gt 2 ]; then
+		local commonOptions="${commonOptions} -recursion"
+	fi
+	
+	local errorCodes=400,404,503
+	
+	if [ "$#" -gt 3 ]; then
+		if [ ! "$4" -eq 0 ]; then
+			local errorCodes=$errorCodes,$4
+		fi
+	fi	
+	
+	local wordlist=/opt/tools/s2s_tools/resources/onelistforallmicro.txt
+	local output=$outputPath/fuzz.$cleanedURL.onelist.output.json
+	local method="GET"
+	
+	# Check if a different default wordlist should be used
+	if [ "$#" -gt 4 ]; then
+		if [ "$5" -eq 1 ]; then
+			local wordlist=/opt/tools/s2s_tools/resources/raft-medium-directories-lowercase.txt
+			local output=$outputPath/fuzz.$cleanedURL.raft-directory.output.json
+		elif [ "$5" -eq 2 ]; then
+			local wordlist=/opt/tools/s2s_tools/resources/api_wordlist.txt
+			local output=$outputPath/fuzz.$cleanedURL.raft-directory.output.json
+			local method="POST,GET"
+		fi
+	fi
+
+	local wordCount=0
+	
+	if [ "$#" -gt 5 ]; then
+		local wordCount=$6
+	fi
+
+	if [ "$#" -gt 6 ]; then
+		local wordlist=$7
+		local wordlist_name=$(getFilename $wordlist)
+		local output=$outputPath/fuzz.$cleanedURL.$wordlist_name.output.json
+	fi
+	
+	if [ "$#" -gt 7 ]; then
+		local method=$8
+	fi
+
+	if [[ ! "$wordCount" -eq 0 ]]; then
+		ffuf $commonOptions -fw $wordCount -w $wordlist -u $url/FUZZ -o $output -of json -X $method -fc $errorCodes
+		
+	else
+		ffuf $commonOptions -w $wordlist -u $url/FUZZ -o $output -of json -X $method -fc $errorCodes
+	fi
+	cat $output | jq .results | jq -c '.[]' | tee $output > /dev/null
+	sendToELK $output fuzz
+
+	echo "==========================================================================="
+	echo "Worflow ${FUNCNAME[0]} finished"
+	echo "==========================================================================="
+
+}
+
+#============================================================================
+# Performs a directory enumeration (brute force - forced browsing) using 
+# a default wordlist and the gobuster tool.
+#
+# Usage:
+#	ferox project URL
+# 
+# Additional parameters:
+#
+#	ferox project URL [recurse] [errorCodes] [defaultLists] [words] [wordlist] [method]
+#            $1    $2    $3          $4           $5           $6      $7         $8
+#
+#	[recurse] 		Boolean		Recursion for every found item
+#	[errorCodes]	String		List of comma separated error codes which should be filtered
+# 	[defaultLists]  Integer		Switching between default list 
+#									0 ... onelistforallmicro
+#									1 ... raft-medium-directories-lowercase
 # 	[words]			Integer		Comma separated list of Word counts which should be filtered
 #	[wordlist]		String		Manually specified word list.
 #	[method]		String		Comma separated list of methods to be used. E.g.: POST,DELETE,GET. Default GET is used
@@ -35,14 +135,16 @@ function ferox() {
 	fi
 	
 	local url=$2
-	local cleanedURL=$(cleanURL $url)
+	local cleanedURL=$(cleanURLKeepHTTPAndHTTPS $url)
 	local outputPath=$defaultPath/host
 	mkdir -p $outputPath
 	
-	local recursive=false
+	local commonOptions="--auto-tune -A -k -f -n"
+	local trueValue="true"
+	local compare="$3"
 	
-	if [ "$#" -gt 2 ]; then
-		recursive=$3
+	if [[ "$#" -gt 2 && "${compare,,}" == "${trueValue,,}" ]]; then
+		local commonOptions="--auto-tune -A -k -f"
 	fi
 	
 	local errorCodes=301,302,400,404,503
@@ -55,50 +157,40 @@ function ferox() {
 	
 	local wordlist=/opt/tools/s2s_tools/resources/onelistforallmicro.txt
 	local output=$outputPath/ferox.$cleanedURL.onelist.output.json
-	
 	local method="GET"
 	
+	# Check if a different default wordlist should be used
 	if [ "$#" -gt 4 ]; then
-		if [ "$#" -gt 7 ]; then
-				local wordlist=$8
-				local wordlist_name=$(getFilename $wordlist)
-				local output=$outputPath/ferox.$cleanedURL.$wordlist_name.output.json
-		else
-			if [ "$5" -eq 1 ]; then
-				local wordlist=/opt/tools/s2s_tools/resources/raft-medium-directories-lowercase.txt
-				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
-			elif [ "$5" -eq 2 ]; then
-				local wordlist=/opt/tools/s2s_tools/resources/api_wordlist.txt
-				local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
-				local method="POST,GET"
-			fi
+		if [ "$5" -eq 1 ]; then
+			local wordlist=/opt/tools/s2s_tools/resources/raft-medium-directories-lowercase.txt
+			local output=$outputPath/ferox.$cleanedURL.raft-directory.output.json
+		elif [ "$5" -eq 2 ]; then
+			local wordlist=/opt/tools/s2s_tools/resources/api_wordlist.txt
+			local output=$outputPath/ferox.$cleanedURL.api_wordlist.output.json
+			local method="POST,GET"
 		fi
 	fi
 	
-	if [ "$#" -gt 8 ]; then
-		local method=$9
+	local wordCount=0
+	
+	if [ "$#" -gt 5 ]; then
+		local wordCount=$6
+	fi
+
+	if [ "$#" -gt 6 ]; then
+		local wordlist=$7
+		local wordlist_name=$(getFilename $wordlist)
+		local output=$outputPath/ferox.$cleanedURL.$wordlist_name.output.json
 	fi
 	
-	if $recursive; then
-		if [ "$#" -gt 5 ]; then
-			if [ "$#" -gt 6 ]; then
-				feroxbuster --smart -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -W $7 -m $method
-			else
-				feroxbuster --auto-tune --collect-words -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -m $method
-			fi
-		else
-			feroxbuster --smart -r -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -m $method
-		fi	
+	if [ "$#" -gt 7 ]; then
+		local method=$8
+	fi
+		
+	if [[ ! "$wordCount" -eq 0 ]]; then
+		feroxbuster $commonOptions -C $errorCodes -u $url --json -o $output -w $wordlist -W $wordCount -m $method
 	else
-		if [ "$#" -gt 5 ]; then
-			if [ "$#" -gt 6 ]; then
-				feroxbuster --smart -r -k -f -n -C $errorCodes --url $url --json -o $output -w $wordlist -W $7 -m $method
-			else
-				feroxbuster --auto-tune --collect-words -r -n -k -f -C $errorCodes --url $url --json -o $output -w $wordlist -m $method
-			fi
-		else
-			feroxbuster --smart -r -k -f -n -C $errorCodes --url $url --json -o $output -w $wordlist -m $method
-		fi	
+		feroxbuster $commonOptions -C $errorCodes -u $url --json -o $output -w $wordlist -m $method
 	fi
 	
 	sendToELK $output ferox

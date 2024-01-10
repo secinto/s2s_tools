@@ -247,7 +247,7 @@ ports() {
 
 	local script=/opt/tools/nmapXMLParser/nmapXMLParser.py
 
-	local ports="-F"
+	local ports=""
 	
 	if [ "$#" -gt 1 ]; then
 		if [ "$#" -eq 3 ]; then
@@ -288,6 +288,7 @@ ports() {
 
 	jq -r '[.ip, .port] | @csv' $outputJSON | sed "s/\"//g" | sed "s/\,/\:/g" | sort -u | tee $outputTXT
 	
+	# Creating HTML files from nmap XML output
 	xsltproc $output -o $(changeFileExtension $output "html")
 		
 	local now="$(date +'%d/%m/%Y -%k:%M:%S')"
@@ -326,25 +327,23 @@ http_from() {
 		echo "Current time: $now"
 		echo "============================================================================"
 
-		echo $output
-		
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
 			if [[ "$#" -eq 5 && "$5" == "true" ]]; then
-				httpx -l $input -silent -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb
+				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb
 			else 
-				httpx -l $input -silent -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 			fi
 			sendToELK $output httpx
 		elif [ $type == "resolve" ]; then
 			# Required for removing duplicates up front
 			local output=$reconPath/$FUNCNAME.$1.$type.output.json
-			httpx -l $input -silent -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			httpx -l $input -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 		else 
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			httpx -l $input -silent -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
+			httpx -l $input -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
@@ -382,6 +381,14 @@ http_from_domains() {
 
 	if [ -s "$defaultPath/domains_with_http_ports.txt" ]; then
 		local input=$defaultPath/domains_with_http_ports.txt
+	fi
+	
+	local use_all_ports=$2
+	
+	if [ "$use_all_ports" == "true" ]; then 
+		if [ -s "$defaultPath/domains_with_ports.txt" ]; then
+			local input=$defaultPath/domains_with_http.txt
+		fi
 	fi
 	
 	if [ -s "$input" ]; then
@@ -822,9 +829,11 @@ do_clean() {
 		if [ -f "$reconPath/http_from.clean.output.json" ]; then
 			rm $reconPath/http_from.clean.output.json
 		fi
+		
 		if [[ "$#" -eq 2 && "$2" == "true" ]]; then
 			# Perform resolution of cleaned domains.
 			http_from $project $domains "clean" "domains" "true"
+			copyScreenshots $project
 		else 
 			# Perform resolution of cleaned domains.
 			http_from $project $domains "clean" "domains"

@@ -85,6 +85,29 @@ function cleanProject() {
 
 
 #============================================================================
+# Archives the project directory 
+#============================================================================
+function archiveProject() {
+	
+	local project=$1
+	local defaultPath="/opt/s2s/$project"
+	local now=$(date +"%m_%d_%Y")
+	local archive=$defaultPath/archive/$project-$now.zip
+	
+	echo "============================================================================"
+	echo "Archiving current contents of project $project"
+	echo "============================================================================"
+	
+	zip -q -r $archive $defaultPath -x $defaultPath/archive/**\* &> /dev/null
+
+	echo "============================================================================"
+	echo "Archive for project $project stored in $archive"
+	echo "============================================================================"
+
+}
+
+
+#============================================================================
 # Initializes the project for broad scope evaluation. It can be used either
 # by providing the project name (FQDN) and an input file with all the domains
 # which should be included under this project such as
@@ -163,6 +186,8 @@ function getRemoteReconResults() {
 	initialize "$@"
 	
 	if [[ -n "${SSH_S2S_USER+set}" && -n "${SSH_S2S_SERVER+set}" ]]; then
+	
+		archiveProject "$@"
 		
 		echo "==========================================================================="
 		echo " Getting remote results from $SSH_S2S_SERVER for project $project"
@@ -182,7 +207,7 @@ function getRemoteReconResults() {
 			echo "Getting $project ZIP file from remote host $SSH_S2S_SERVER"
 			#rm -rf $defaultPath
 			local return="$(scp $ssh_base:/opt/s2s/$project/$project.zip /opt/s2s/$project/archive/$project.$date.zip)"
-			#cleanProject $project
+			cleanProject $project
 			unzip -o /opt/s2s/$project/archive/$project.$date.zip -d /
 
 			local ssh_command="rm /opt/s2s/$project/recon_started"
