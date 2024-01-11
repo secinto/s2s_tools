@@ -499,7 +499,7 @@ function fullServiceScan() {
 		echo "==========================================================================="
 
 		local ips="$(python3 $script -ip -f $input)"
-
+		echo "$ips"
 		while read -r line
 		do
 			local open_tcp_ports=$(getOpenPortsForHost $line tcp $input)

@@ -68,7 +68,6 @@ function cleanProject() {
 	sudo rm -rf  $responsePath
 	sudo rm -rf  $brutePath
 	sudo rm -rf  $defaultPath/host
-	sudo rm -rf  $defaultPath/nmap
 	sudo rm -rf  $defaultPath/dir
 	sudo rm -rf  $defaultPath/findings
 	sudo rm -rf  $defaultPath/github_dork
