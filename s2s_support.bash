@@ -1,4 +1,77 @@
 #!/bin/bash
+#============================================================================
+# Prints the externally visible IP used from this host
+#============================================================================
+function myip() {
+	dig @resolver4.opendns.com myip.opendns.com +short
+}
+
+#============================================================================
+# Returns the current time stamp
+#============================================================================
+function getTimeForFile() {
+	local currentTime="$(date "+%Y.%m.%d-%H.%M.%S")"
+	echo $currentTime
+}
+
+#============================================================================
+# Checks if the specified file is older than 3600 minutes.
+#============================================================================
+function checkFile() {
+	local fileToCheck=$1
+	
+	if [[ -f "$fileToCheck" && $(find "$fileToCheck" -mmin +3600 -print) ]]; then
+		true
+	elif [[ ! -f "$fileToCheck" ]]; then
+		true
+	else
+		false
+	fi
+}
+
+#============================================================================
+# Removes the net portion of the IP and sets the last octet of the IPv4 
+# address to '0'
+#============================================================================
+function makeIPCIDRReady() {
+	# Removes the net portion of the IP and sets the last octet of the IPv4 address to '0'
+	local cidrReadyIP="$(echo "$1" | sed 's/\/.*//g' | sed '/[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+/s/\.[0-9]\+$/.0/')"
+	echo $cidrReadyIP
+}
+
+#============================================================================
+# Sorts the provided list of IPs in ascedending order
+#============================================================================
+function sortIPs() {
+	local input=$1
+	
+	local output="$(getFilenameWithoutExtension $input)-sorted.txt"
+	sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n $input | tee $output
+}
+
+#============================================================================
+# Checks if the provided parameter is of type integer
+#============================================================================
+function checkIfNumber() {
+	local paramToCheck=$1
+	
+	re='^[0-9]+$'
+	if ! [[ $paramToCheck =~ $re ]] ; then
+		false
+	else
+		true
+	fi
+}
+
+#============================================================================
+# Return the domain name of an URI (strips everything after the port and 
+# the protocol
+#============================================================================
+function getDomain() {
+	local input="$1"
+	local cleaned_url="$(echo $input | sed 's/\:[^:]*$//' | sed 's/http\:\/\///g' | sed 's/https\:\/\///g')"
+    echo $cleaned_url
+}
 
 #============================================================================
 # Cleans the provided URL in order to be used within the file system.
@@ -7,7 +80,7 @@
 #============================================================================
 function cleanURL() {
 	local input="$1"
-	local cleaned_url="$(echo $input | sed 's/:/_/g' | sed 's/\//_/g' | sed 's/\#/_/g' | sed 's/\?/_/g' | sed 's/\&/_/g' | sed 's/\\/_/g')"
+	local cleaned_url="$(echo $input | sed 's/:/_/g' | sed 's/\//_/g' | sed 's/\#/_/g' | sed 's/\?/_/g' | sed 's/\&/_/g' | sed 's/\\/_/g' | sed 's/\&/_/g')"
     echo $cleaned_url
 }
 #============================================================================
@@ -17,7 +90,7 @@ function cleanURL() {
 #============================================================================
 function cleanURLKeepHTTPAndHTTPS() {
 	local input="$1"
-	local cleaned_url="$(echo $input | sed 's/https:\/\//https_/g' | sed 's/http:\/\//http_/g' | sed 's/\//_/g' | sed 's/\#/_/g' | sed 's/\?/_/g' | sed 's/\&/_/g')"
+	local cleaned_url="$(echo $input | sed 's/https:\/\//https_/g' | sed 's/http:\/\//http_/g' | sed 's/\//_/g' | sed 's/\#/_/g' | sed 's/\?/_/g' | sed 's/\&/_/g' | sed 's/\:/_/g')"
     echo $cleaned_url
 }
 #============================================================================
@@ -151,6 +224,23 @@ function removeDuplicate() {
 	echo "============================================================================"
 	
 	cleanAndFind -p $project
+}
+
+#============================================================================
+# Creates a hostMapping.json file in the findings folder for the specified
+# project.
+#============================================================================
+function doPrepareInput() {
+	if ! initialize "$@"; then
+		echo "Exiting"
+		return
+	fi
+
+	echo "============================================================================"
+	echo "Creates hostMapping.json file for $project"
+	echo "============================================================================"
+	
+	prepareInput -t -p $project
 }
 
 #============================================================================
@@ -382,17 +472,6 @@ function commandToALL {
 	echo "==========================================================================="
 }
 
-function checkFile() {
-	local fileToCheck=$1
-	
-	if [[ -f "$fileToCheck" && $(find "$fileToCheck" -mmin +3600 -print) ]]; then
-		true
-	elif [[ ! -f "$fileToCheck" ]]; then
-		true
-	else
-		false
-	fi
-}
 #============================================================================
 # Checks if a specific file is at least older than a day and if yes archives 
 # the file and returns true. Otherwise, nothing is done and false is returned.
@@ -431,44 +510,6 @@ function checkAndArchive() {
 	
 }
 
-function getTimeForFile() {
-	local currentTime="$(date "+%Y.%m.%d-%H.%M.%S")"
-	echo $currentTime
-}
-
-#============================================================================
-# Removes the net portion of the IP and sets the last octet of the IPv4 
-# address to '0'
-#============================================================================
-function makeIPCIDRReady() {
-	# Removes the net portion of the IP and sets the last octet of the IPv4 address to '0'
-	local cidrReadyIP="$(echo "$1" | sed 's/\/.*//g' | sed '/[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+/s/\.[0-9]\+$/.0/')"
-	echo $cidrReadyIP
-}
-
-#============================================================================
-# Sorts the provided list of IPs in ascedending order
-#============================================================================
-function sortIPs() {
-	local input=$1
-	
-	local output="$(getFilenameWithoutExtension $input)-sorted.txt"
-	sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n $input | tee $output
-}
-
-#============================================================================
-# Checks if the provided parameter is of type integer
-#============================================================================
-function checkIfNumber() {
-	local paramToCheck=$1
-	
-	re='^[0-9]+$'
-	if ! [[ $paramToCheck =~ $re ]] ; then
-		false
-	else
-		true
-	fi
-}
 #============================================================================
 # Creates a JSON list from the provided input file which is expected to be a 
 # plain text file. Each line will be one entry in the specified output JSON 
@@ -692,11 +733,4 @@ function convert_xml_to_html() {
 	echo "Workflow ${FUNCNAME[0]} finished"
 	echo "==========================================================================="
 
-}
-
-#============================================================================
-# Prints the externally visible IP used from this host
-#============================================================================
-function myip() {
-	dig @resolver4.opendns.com myip.opendns.com +short
 }

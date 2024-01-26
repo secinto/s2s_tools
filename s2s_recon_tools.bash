@@ -204,7 +204,7 @@ dpux() {
 		fi
 		
 		# Performing DNS resolution and response generation
-		cat $input | dnsx -a -aaaa -mx -txt -srv -ptr -soa -ns -cname -caa -axfr -resp -json -o $outputJSON
+		cat $input | dnsx -rl 20 -a -aaaa -mx -txt -srv -ptr -soa -ns -cname -caa -axfr -resp -json -o $outputJSON
 	
 		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputSimple > /dev/null
 		#cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputHostToIP > /dev/null
@@ -330,9 +330,9 @@ http_from() {
 		if [ $type == "clean" ]; then
 			local output=$reconPath/$FUNCNAME.$type.$4.output.json
 			if [[ "$#" -eq 5 && "$5" == "true" ]]; then
-				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb -random-agent=false
+				httpx -l $input -rl 10 -hash "mmh3" -random-agent=false -pipeline -http2 -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -ss -esb -ehb -random-agent=false
 			else 
-				httpx -l $input -rl 10 -hash "mmh3" -random-agent -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -random-agent=false
+				httpx -l $input -rl 10 -hash "mmh3" -random-agent=false -pipeline -http2 -vhost -cdn -cname -ip -server -tls-grab -json -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -random-agent=false
 			fi
 			sendToELK $output httpx
 		elif [ $type == "resolve" ]; then
@@ -343,7 +343,7 @@ http_from() {
 			local outputURLs=$reconPath/http_servers_all.txt
 			local outputHttpsURLs=$reconPath/https_servers_all.txt
 			# Required for removing duplicates up front
-			httpx -l $input -rl 10 -hash "mmh3" -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -random-agent=false
+			httpx -l $input -rl 10 -hash "mmh3" -tls-grab -json -ip -o $output -fr -maxr 10 -store-chain -srd $outputDir/$type -rhsts -duc -random-agent=false
 
 			cat	$output | jq .url | sed 's/\"//g' | anew $outputURLs > /dev/null
 			cat	$outputURLs | grep https | anew $outputHttpsURLs > /dev/null
@@ -387,7 +387,7 @@ http_from_domains() {
 	
 	if [ "$use_all_ports" == "true" ]; then 
 		if [ -s "$defaultPath/domains_with_ports.txt" ]; then
-			local input=$defaultPath/domains_with_http.txt
+			local input=$defaultPath/domains_with_ports.txt
 		fi
 	fi
 	
@@ -965,6 +965,8 @@ recon() {
 	#echo "--- Moved screenshots into specific folder --- "
 	getFindings $project
 	echo "--- Get findings from obtained data --- "
+	doPrepareInput $project
+	echo "--- Created host mapping file --- "
 	#web_tech_all $project
 	#echo "--- web technologies obtained from HTTP servers"
 	#getWebserversWithProtocolIssuescd /op $project 

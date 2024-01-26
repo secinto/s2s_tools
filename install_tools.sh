@@ -113,7 +113,8 @@ function installGOTools() {
 	go install -v github.com/secinto/nmapParser/cmd/nmapParser@latest
 	go install -v github.com/secinto/cleanAndFind/cmd/cleanAndFind@latest
 	go install -v github.com/secinto/analyzeResponses/cmd/analyzeResponses@latest
-	go install -v github.com/secinto/simpleFinder/cmd/simpleFinder@latest
+	#go install -v github.com/secinto/simpleFinder/cmd/simpleFinder@latest
+	go install -v github.com/secinto/prepareInput/cmd/prepareInput@latest
 	
 	mkdir -p ~/.config/nmapParser
 	mkdir -p ~/.config/simpleFinder
@@ -123,6 +124,7 @@ function installGOTools() {
 	cp $s2s_tools/resources/settings.yaml ~/.config/cleanAndFind/.
 	cp $s2s_tools/resources/settings.yaml ~/.config/simpleFinder/.
 	cp $s2s_tools/resources/settings.yaml ~/.config/nmapParser/.
+	cp $s2s_tools/resources/settings.yaml ~/.config/prepareInput/.
 	
 	cd ~
 	webanalyze -update

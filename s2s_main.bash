@@ -60,6 +60,21 @@ function loadScripts() {
 		echo "RECON filter script not available from $recon_filter."
 		#exit 1
 	fi
+
+	local recon_extra="$currentDirectory/s2s_recon_extra.bash"
+
+	if [ -s "$recon_extra" ]; then
+		echo "============================================================================"
+		echo "Sourcing RECON extra script from location "
+		echo "$recon_extra"
+		echo "============================================================================"
+		
+		source "$recon_extra"
+		
+	else
+		echo "RECON filter script not available from $recon_extra."
+		#exit 1
+	fi
 	
 	local scan_web_dir="$currentDirectory/s2s_scan_web_dir.bash"
 
