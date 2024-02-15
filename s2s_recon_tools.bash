@@ -189,22 +189,25 @@ dpux() {
 		echo "Creating plain list of unique IPs for domain $project"
 		echo "============================================================================"
 		
-
+		cp $input $inputTmp
+		local selectors=/opt/tools/s2s_tools/resources/dkim_selectors.txt
+		local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
+		
 		if [ -s "$multi" ]; then
 			for line in $(<$multi); 
 			do 
-				echo "$line" | anew $input > /dev/null
-				#echo "s1._domainkey.$line" | anew $inputTmp > /dev/null
-				#echo "_dmarc.$line" | anew $input > /dev/null
+				echo "$line" | anew $inputTmp > /dev/null
+				awk '$0=$0"._domainkey."$line' $selectors | anew $inputTmp > /dev/null 
+				echo "_dmarc.$line" | anew $inputTmp > /dev/null
 			done
 		else
-			#echo "s1._domainkey.$project" | anew $inputTmp > /dev/null
-			#echo "_dmarc.$project" | anew $inputTmp > /dev/null
-			echo "$project" | anew $input > /dev/null
+			echo "$project" | anew $inputTmp > /dev/null
+			awk '{print $0"'"._domainkey.$project"'"}' $selectors | anew $inputTmp > /dev/null 
+			echo "_dmarc.$project" | anew $inputTmp > /dev/null
 		fi
 		
 		# Performing DNS resolution and response generation
-		cat $input | dnsx -rl 20 -a -aaaa -mx -txt -srv -ptr -soa -ns -cname -caa -axfr -resp -json -o $outputJSON
+		dnsx -l $inputTmp -a -aaaa -mx -txt -srv -ptr -ns -cname -resp-only -json -o $outputJSON -r $resolvers
 	
 		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputSimple > /dev/null
 		#cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputHostToIP > /dev/null
