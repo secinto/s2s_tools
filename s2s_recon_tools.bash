@@ -191,7 +191,7 @@ dpux() {
 		
 		cp $input $inputTmp
 		local selectors=/opt/tools/s2s_tools/resources/dkim_selectors.txt
-		local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
+		local resolvers=/opt/tools/s2s_tools/resources/resolvers_simple.txt
 		
 		if [ -s "$multi" ]; then
 			for line in $(<$multi); 
