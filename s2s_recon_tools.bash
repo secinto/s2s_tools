@@ -205,10 +205,11 @@ dpux() {
 			awk '{print $0"'"._domainkey.$project"'"}' $selectors | anew $inputTmp > /dev/null 
 			echo "_dmarc.$project" | anew $inputTmp > /dev/null
 		fi
-		
 		# Performing DNS resolution and response generation
 		dnsx -l $inputTmp -a -aaaa -mx -txt -srv -ptr -ns -cname -resp-only -json -o $outputJSON -r $resolvers
-	
+		
+		rm $inputTmp
+		
 		cat $outputJSON | grep -vE "._domainkey.|_dmarc.|\"spf." | grep -vE "^10\..*|^172\.(1[6-9]|2[0-9]|3[0-1])\..*|^192\.168\..*|^127\.0\..*" | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputSimple > /dev/null
 		#cat $outputJSON | jq 'select(.a != null) | {host, ip: .a[]}' | jq -c '.' | tee $outputHostToIP > /dev/null
 		#cat $outputJSON | jq .host | sed 's/\"//g' | tee $outputDomains > /dev/null
@@ -589,7 +590,7 @@ dns_brute() {
 	local inputTXT=$reconPath/subf.$dns.output.txt
 	local outputTXT=$reconPath/subf.$dns.resv.txt
 	local domains=$defaultPath/domains.txt
-	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
+	local resolvers=/opt/tools/s2s_tools/resources/resolvers_simple.txt
 
 	
 	# Resolving DNS entries found by subfinder. If resolved they are added to domains.
@@ -651,7 +652,7 @@ dns_enum() {
 	local outputTXT=$reconPath/subf.$dns.resv.txt
 	local output=$brutePath/$dns.enum.brute.txt
 	local wordlist=/opt/tools/s2s_tools/resources/dns2_long.txt
-	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
+	local resolvers=/opt/tools/s2s_tools/resources/resolvers_simple.txt
 
 	local run=true
 	
@@ -764,7 +765,7 @@ dns_fuzz() {
 
 	local outputRaw=$brutePath/$dns.fuzz.raw.txt
 	local outputResolved=$brutePath/$dns.fuzz.resv.txt
-	local resolvers=/opt/tools/s2s_tools/resources/resolvers.txt
+	local resolvers=/opt/tools/s2s_tools/resources/resolvers_simple.txt
 
 	local run=true
 	

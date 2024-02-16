@@ -113,18 +113,19 @@ function filterIPs() {
 
 	local input=$reconPath/dpux.txt
 	local output=$reconPath/dpux_clean.txt
+	if [ -s $input ]; then  
+		echo "Filtering obtained IPs to exclude IPs used for office 365 signaling (autodiscover, sip, ...)"
 
-	echo "Filtering obtained IPs to exclude IPs used for office 365 signaling (autodiscover, sip, ...)"
-
-	local ipsToRemove="$(mapcidr -silent -cl /opt/tools/s2s_tools/resources/microsoft_ips.txt -mi $input)"
-	cat $input | tee $output > /dev/null
-	if [ ! -z "$ipsToRemove" ]; then
-		while read -r line
-		do
-			sed -i "/$line/d" "$output"
-		done <<< "$ipsToRemove"
-	else
-		echo "No IP addresses are set to be removed"
+		local ipsToRemove="$(mapcidr -silent -cl /opt/tools/s2s_tools/resources/microsoft_ips.txt -mi $input)"
+		cat $input | tee $output > /dev/null
+		if [ ! -z "$ipsToRemove" ]; then
+			while read -r line
+			do
+				sed -i "/$line/d" "$output"
+			done <<< "$ipsToRemove"
+		else
+			echo "No IP addresses are set to be removed"
+		fi
 	fi
 }
 
