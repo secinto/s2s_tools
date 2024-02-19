@@ -898,7 +898,7 @@ function tls_check() {
 		#sslyze --targets_in $inputIPs --json_out $outputIPs
 		rm $defaultPath/work/*.json
 		
-		interlace -threads 10 -tL $input -o $defaultPath/work -c "$script -oJ $defaultPath/work/ --fast --assume-http --connect-timeout 900 --openssl-timeout 900 --warnings off _target_"
+		interlace -threads 10 -tL $input -o $defaultPath/work -c "$script -oJ $defaultPath/work/ --assume-http --connect-timeout 900 --openssl-timeout 900 --warnings off _target_"
 		
 		local now="$(date +'%d/%m/%Y -%k:%M:%S')"
 
@@ -931,7 +931,7 @@ recon() {
 	
 	local multi_domains=$defaultPath/multi_domains.txt
 	
-	if [ $# -eq 2 ]; then
+	if [[ "$#" -eq 3 && "$3" == "true" ]]; then
 		echo "==========================================================================="
 		echo "Cleaning results for project $project"
 		echo "==========================================================================="
@@ -940,7 +940,7 @@ recon() {
 		
 	fi
 	
-	if [ -s "$multi_domains" ]; then
+	if [ -s "$multi_domains" && "$#" -eq 2 && "$2" == "true"]; then
 		echo "==========================================================================="
 		echo "Multi domain file found. Performing resolution first"
 		echo "==========================================================================="

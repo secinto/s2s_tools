@@ -153,7 +153,7 @@ function doRemoteRecon() {
 		echo "SSH command $ssh_command"
 		local return="$(ssh $ssh_base -t $ssh_command)"
 			
-		if [ -f $defaultPath/multi_domains.txt ]; then
+		if [[ -f $defaultPath/multi_domains.txt && "$#" -eq 2 && "$2" == "true" ]]; then
 			echo "Multi domain project"
 			echo "Creating s2s directory for $project on remote machine $SSH_S2S_SERVER"
 			local ssh_command="mkdir -p /opt/s2s/$project"
